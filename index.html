@@ -265,7 +265,7 @@ nav.tabs .plus{width:54px;height:54px;border-radius:50%;background:var(--accent)
 /* =========================================================
    Takt – Zyklus-Tracking. Alle Daten bleiben lokal.
    ========================================================= */
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 const DATA_VERSION = 1;
 const KEY = location.hash === '#demo' ? 'takt.demo' : 'takt.v1';
 const DAY = 864e5;
@@ -286,6 +286,7 @@ const num = (x,d=1) => (Math.round(x*10**d)/10**d).toString().replace('.',',');
 
 /* ---------- Kataloge ---------- */
 const DEFAULT_PRESETS = {
+  blut:[],
   koerper:['Unterleibsschmerzen','Brustspannen','Blähbauch','Kopfschmerzen','Rückenschmerzen','Gelenk-/Muskelschmerzen','Müdigkeit','Übelkeit','Verdauung'],
   pos:['Ausgeglichen','Fröhlich','Gelassen','Motiviert','Gesellig','Fokussiert','Selbstbewusst','Kreativ'],
   neg:['Niedergeschlagen','Hoffnungslos','Wertlos/schuldig','Ängstlich/angespannt','Stimmungsschwankungen','Empfindlich','Gereizt/wütend','Konflikte','Weniger Interesse','Antriebslos','Überfordert','Außer Kontrolle'],
@@ -296,7 +297,7 @@ const DEFAULT_PRESETS = {
   kontext:['Erkältet','Fieber','Alkohol','Reise/Zeitzone','Arzttermin','Besonderer Tag']
 };
 const SEV_SECTIONS = ['koerper','pos','neg','haut'];
-const SECTION_NAME = {koerper:'Körper',pos:'Stimmung – positiv',neg:'Stimmung – belastend',haut:'Haut',crav:'Heißhunger',sport:'Sport',stress:'Stress-Quellen',kontext:'Kontext'};
+const SECTION_NAME = {blut:'Blutung',koerper:'Körper',pos:'Stimmung – positiv',neg:'Stimmung – belastend',haut:'Haut',crav:'Heißhunger',sport:'Sport',stress:'Stress-Quellen',kontext:'Kontext'};
 const BLEED = ['Keine','Schmierblutung','Leicht','Mittel','Stark'];
 const isBleed = b => b==='Leicht'||b==='Mittel'||b==='Stark';
 
@@ -493,19 +494,9 @@ function renderHints(){
   const {lens} = CY; const last = lens.slice(-6);
   if (last.length && (Math.min(...last) < 24 || Math.max(...last) > 38)) out.push(['warn','Zykluslänge außerhalb des Normbereichs', `Mindestens ein Zyklus lag außerhalb von 24–38 Tagen (FIGO). Einzelne Ausreißer sind häufig; wiederholt sich das, lohnt sich ein Gespräch mit deiner Frauenärztin.`]);
   else if (last.length >= 4 && Math.max(...last) - Math.min(...last) > 9) out.push(['warn','Zykluslängen schwanken stark', `Kürzester und längster Zyklus liegen mehr als 9 Tage auseinander (FIGO-Grenze: 7–9 Tage).`]);
-  const heavy = recentHeavy();
-  if (heavy) out.push(['warn','Starke Blutung', heavy]);
   const lb = S.settings.lastBackup ? diff(TODAY(), D(S.settings.lastBackup)) : null;
   if (Object.keys(S.days).length >= 7 && (lb === null || lb > 14)) out.push(['', 'Backup fällig', `${lb===null?'Du hast noch kein Backup erstellt.':`Dein letztes Backup ist ${lb} Tage alt.`} <a href="#" onclick="event.preventDefault();exportBackup()" class="src">Jetzt sichern</a>`]);
   document.getElementById('hints').innerHTML = out.map(([c,t,p]) => `<div class="info ${c}"><b>${t}</b><p>${p}</p></div>`).join('');
-}
-function recentHeavy(){
-  const t = TODAY();
-  for (let i=0;i<10;i++){
-    const d = S.days[iso(add(t,-i))];
-    if (d && isBleed(d.bleed) && ((d.chg && d.chg >= 8) || d.clots)) return `Am ${fmtShort(add(t,-i))} hast du ${d.chg>=8?'sehr häufige Wechsel':''}${d.chg>=8&&d.clots?' und ':''}${d.clots?'Klumpen':''} eingetragen. Als Hinweis auf starke Blutung gilt, wenn Binde oder Tampon innerhalb von 3 Stunden durchnässt sind oder Klumpen größer als 2,5 cm abgehen. Hält das an, kläre es ärztlich ab.`;
-  }
-  return null;
 }
 function renderQuick(){
   const d = S.days[iso(TODAY())] || {};
@@ -578,7 +569,7 @@ function renderCal(){
 function daySummary(d){
   if (!d) return '';
   const parts = [];
-  if (d.bleed && d.bleed!=='Keine') parts.push(`<b>Blutung:</b> ${esc(d.bleed)}${d.chg?` (${d.chg}× gewechselt)`:''}`);
+  if (d.bleed && d.bleed!=='Keine') parts.push(`<b>Blutung:</b> ${esc(d.bleed)}${(d.btags||[]).length?` · ${d.btags.map(esc).join(', ')}`:''}`);
   const q = []; if (d.mood) q.push(`Stimmung ${d.mood}`); if (d.energy) q.push(`Energie ${d.energy}`); if (d.pain) q.push(`Schmerz ${d.pain}`);
   if (q.length) parts.push(q.join(' · '));
   const sy = Object.entries(d.sym||{}).map(([k,v])=>`${esc(k.split('|')[1])} (${v})`);
@@ -622,6 +613,7 @@ function freeCounts(sec){
     else if (sec==='sport') items = (d.sport&&d.sport.t)||[];
     else if (sec==='stress') items = (d.stress&&d.stress.src)||[];
     else if (sec==='kontext') items = d.ctx||[];
+    else if (sec==='blut') items = d.btags||[];
     for (const it of items) if (!preset.has(it)) cnt[it] = (cnt[it]||0)+1;
   }
   return cnt;
@@ -684,9 +676,8 @@ function renderEntry(){
   const symOf = sec => Object.keys(d.sym||{}).filter(x=>x.startsWith(sec+'|')).map(x=>x.slice(sec.length+1));
   const H = d.hunger||{}, SL = d.sleep||{}, ST = d.stress||{}, SP = d.sport||{};
   const secs = [
-    ['blut','Blutung','●','var(--mens-soft)', `<div class="chips single" data-sec="blut">${BLEED.map(b=>`<span class="chip ${ (d.bleed||'Keine')===b?'on':''}">${b}</span>`).join('')}</div>
-      <div class="field"><span>Produkt gewechselt<br><span class="small">Binde, Tampon, Tasse – wie oft heute?</span></span><input type="number" id="f-chg" inputmode="numeric" min="0" max="30" value="${d.chg??''}"></div>
-      <div class="field"><span>Klumpen größer als 2,5 cm</span><div class="toggle ${d.clots?'on':''}" id="f-clots" onclick="this.classList.toggle('on')"></div></div>`],
+    ['blut','Blutung','●','var(--mens-soft)', `<div class="chips single" data-sec="bleed">${BLEED.map(b=>`<span class="chip ${ (d.bleed||'Keine')===b?'on':''}">${b}</span>`).join('')}</div>
+      <div class="sub-h">Eigene Tags</div>${suggestHTML('blut')}${chipGroup('blut', d.btags||[])}`],
     ['koerper','Körper','◎','var(--soft)', `<div class="sevrow" style="border-top:0"><span>Schmerz insgesamt</span>${scaleHTML('pain', d.pain, 'keiner','extrem')}</div>${suggestHTML('koerper')}${chipGroup('koerper', symOf('koerper'), {sev:1})}<div id="sev-koerper"></div>`],
     ['pos','Stimmung','☺','var(--lut)', `<div class="sevrow" style="border-top:0"><span>Stimmung insgesamt</span>${scaleHTML('mood', d.mood, 'sehr schlecht','sehr gut')}</div>
       <div class="sub-h">Positiv</div>${suggestHTML('pos')}${chipGroup('pos', symOf('pos'), {sev:1})}<div id="sev-pos"></div>
@@ -708,16 +699,15 @@ function renderEntry(){
   document.getElementById('sections').innerHTML = secs.map(([id,t,ic,bg,b],i) =>
     `<details class="sec" ${i<3?'open':''}><summary><span class="row"><span class="ico" style="background:${bg}">${ic}</span>${t}</span><span class="cnt" id="cnt-${id}"></span></summary><div class="body">${b}</div></details>`).join('');
   SEV_SECTIONS.forEach(updateSevRows);
-  ['koerper','pos','neg','haut','crav','stress','sport','kontext','meds'].forEach(updateCount);
+  ['blut','koerper','pos','neg','haut','crav','stress','sport','kontext','meds'].forEach(updateCount);
 }
 function collectEntry(keepDraft){
   const root = document.getElementById('sections'), k = iso(entryDate);
   const prev = S.days[k] || {};
   const d = {};
   const chipsOn = sec => [...root.querySelectorAll(`.chips[data-sec="${sec}"] .chip.on`)].map(c=>c.textContent);
-  d.bleed = (chipsOn('blut')[0]) || 'Keine';
-  const chg = root.querySelector('#f-chg').value; if (chg!=='') d.chg = +chg;
-  if (root.querySelector('#f-clots').classList.contains('on')) d.clots = true;
+  d.bleed = (chipsOn('bleed')[0]) || 'Keine';
+  d.btags = chipsOn('blut');
   d.sym = {};
   for (const sec of SEV_SECTIONS){
     const box = document.getElementById('sev-'+sec);
@@ -1288,7 +1278,7 @@ function seedDemo(){
       if (rnd() < .15) continue;
       const pre = back >= -6, mid = cd>=L-17 && cd<=L-12;
       const day = { full:true, sym:{} };
-      day.bleed = cd===1?'Mittel':cd===2?'Stark':cd===3?'Mittel':cd<=5?'Leicht':'Keine'; if (cd<=2) day.chg = cd===2?6:4;
+      day.bleed = cd===1?'Mittel':cd===2?'Stark':cd===3?'Mittel':cd<=5?'Leicht':'Keine'; if (cd===2) day.btags = ['Krämpfe nachts'];
       day.pain = cd<=2 ? 4+Math.round(rnd()) : 1+Math.round(rnd());
       if (cd<=2) day.sym['koerper|Unterleibsschmerzen'] = 4;
       if (pre) day.sym['koerper|Brustspannen'] = 2+Math.round(rnd()*2);
