@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; manifest-src 'self'; worker-src 'self'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Takt">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F7F4EF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#16151A" media="(prefers-color-scheme: dark)">
+<meta name="referrer" content="no-referrer">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Takt</title>
+<style>
+:root{
+  --bg:#F7F4EF; --card:#FFFFFF; --ink:#26242C; --muted:#8A8590; --line:#ECE7E0; --soft:#FBFAF8;
+  --mens:#C2553F; --mens-soft:#F3DCD5;
+  --fol:#E9DFC9; --fol-ink:#9A8556;
+  --win:#CFE5DF; --win-ink:#3D8A79; --ovu:#2F7A6A;
+  --lut:#E2DBF0; --lut-ink:#7A68A8; --late:#CFC3E6;
+  --accent:#26242C; --accent-ink:#fff;
+  --infobg:#FBFAFE; --winbg:#F5FBF9; --mensbg:#FDF7F5; --warnbg:#FFF6E3; --warn:#B07A10;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme=light]){
+  --bg:#16151A; --card:#222128; --ink:#EDEAF2; --muted:#9B96A3; --line:#33313B; --soft:#2A2930;
+  --mens:#D9715B; --mens-soft:#4A2A24; --fol:#4A4232; --fol-ink:#CDB98A; --win:#22433C; --win-ink:#7CC4B2; --ovu:#3FA08B;
+  --lut:#38324B; --lut-ink:#B6A6E0; --late:#4A4166; --accent:#EDEAF2; --accent-ink:#16151A;
+  --infobg:#26242E; --winbg:#1F2B28; --mensbg:#2C2220; --warnbg:#2E2716; --warn:#E3B04B;
+}}
+:root[data-theme=dark]{
+  --bg:#16151A; --card:#222128; --ink:#EDEAF2; --muted:#9B96A3; --line:#33313B; --soft:#2A2930;
+  --mens:#D9715B; --mens-soft:#4A2A24; --fol:#4A4232; --fol-ink:#CDB98A; --win:#22433C; --win-ink:#7CC4B2; --ovu:#3FA08B;
+  --lut:#38324B; --lut-ink:#B6A6E0; --late:#4A4166; --accent:#EDEAF2; --accent-ink:#16151A;
+  --infobg:#26242E; --winbg:#1F2B28; --mensbg:#2C2220; --warnbg:#2E2716; --warn:#E3B04B;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",system-ui,sans-serif;color:var(--ink)}
+body{padding-top:env(safe-area-inset-top)}
+button,input,select,textarea{font:inherit;color:inherit}
+.app{max-width:500px;margin:0 auto;min-height:100vh;padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+header.top{padding:18px 4px 6px;display:flex;justify-content:space-between;align-items:flex-end}
+header.top h1{font-size:30px;letter-spacing:-.5px;margin:0;font-weight:700}
+header.top .sub{color:var(--muted);font-size:14px;margin-top:2px}
+.iconbtn{border:0;background:var(--card);width:38px;height:38px;border-radius:50%;font-size:17px;box-shadow:0 1px 2px rgba(0,0,0,.06);cursor:pointer}
+.screen{display:none;padding:0 16px}
+.screen.on{display:block}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin:12px 0;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card h3{margin:0 0 8px;font-size:16px;font-weight:650}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.small{font-size:13px;color:var(--muted);line-height:1.45}
+.src{font-size:11.5px;color:var(--muted);text-decoration:none;border-bottom:1px dotted var(--muted)}
+.ringwrap{display:flex;justify-content:center;padding:6px 0 2px;position:relative}
+.ringcenter{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:160px}
+.ringcenter .big{font-size:44px;font-weight:700;letter-spacing:-1px}
+.ringcenter .ph{font-size:15px;font-weight:600;margin-top:2px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border-radius:16px;padding:14px}
+.stat .v{font-size:19px;font-weight:700;margin-top:4px}
+.stat .s{font-size:12px;color:var(--muted);margin-top:2px}
+.week{display:flex;justify-content:space-between;margin-top:8px}
+.wd{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;color:var(--muted);width:13%}
+.wd .c{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:14px;color:var(--ink)}
+.wd.today .c{outline:2px solid var(--ink);outline-offset:2px}
+.btn{border:0;border-radius:14px;padding:14px 16px;font-size:16px;font-weight:650;width:100%;background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:9px 12px;font-size:14px;width:auto;border-radius:12px}
+.btn.danger{background:var(--mens);color:#fff}
+.info{border-left:3px solid var(--lut-ink);padding:11px 13px;background:var(--infobg);border-radius:12px;margin:10px 0}
+.info.win{border-color:var(--win-ink);background:var(--winbg)}
+.info.mens{border-color:var(--mens);background:var(--mensbg)}
+.info.warn{border-color:var(--warn);background:var(--warnbg)}
+.info b{font-size:14px}
+.info p{margin:4px 0 6px;font-size:13.5px;line-height:1.45}
+.tag{display:inline-block;font-size:11px;font-weight:650;border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:1px}
+.tag.ok{background:var(--win);color:var(--win-ink)}
+.tag.no{background:var(--mens-soft);color:var(--mens)}
+.tag.open{background:var(--soft);color:var(--muted);border:1px solid var(--line)}
+.tag.ev{background:var(--lut);color:var(--lut-ink)}
+.calhead{display:flex;justify-content:space-between;align-items:center;margin:0 0 8px}
+.calhead h2{margin:0;font-size:20px}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dow{font-size:12px;color:var(--muted);font-weight:600;padding:6px 0}
+.day{position:relative;height:46px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-size:15px;font-weight:550;cursor:pointer}
+.day .n{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.day.out{opacity:.28}
+.day.mens .n{background:var(--mens);color:#fff}
+.day.spot .n{box-shadow:inset 0 0 0 2px var(--mens)}
+.day.pmens .n{border:2px dashed var(--mens);color:var(--mens)}
+.day.win{background:var(--win)}
+.day.ovu .n{background:var(--ovu);color:#fff}
+.day.lut{background:linear-gradient(var(--lut),var(--lut)) bottom/100% 4px no-repeat}
+.day.today .n{outline:2px solid var(--ink);outline-offset:2px}
+.day .dot{position:absolute;bottom:3px;width:4px;height:4px;border-radius:50%;background:var(--ink);opacity:.55}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted);margin-top:12px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:5px;vertical-align:-2px}
+.datebar{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:14px;padding:8px 10px;margin-top:8px}
+.datebar button{border:0;background:var(--bg);width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer}
+.datebar .t{text-align:center}
+.datebar .t b{display:block;font-size:16px}
+.sec{background:var(--card);border-radius:var(--r);margin:10px 0;overflow:hidden}
+.sec summary{list-style:none;padding:15px 16px;display:flex;align-items:center;justify-content:space-between;font-weight:650;font-size:16px;cursor:pointer}
+.sec summary::-webkit-details-marker{display:none}
+.sec summary .cnt{font-size:12px;color:var(--muted);font-weight:500}
+.sec .body{padding:0 16px 16px}
+.ico{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;margin-right:10px;font-size:15px;color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+.chip{border:1px solid var(--line);background:var(--soft);border-radius:999px;padding:8px 12px;font-size:14px;cursor:pointer;user-select:none;-webkit-user-select:none}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip.add{border-style:dashed;color:var(--muted)}
+.chip.free{border-color:var(--lut-ink)}
+.chip .x{margin-left:6px;opacity:.6}
+.sevrow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font-size:14px;gap:8px}
+.scale{display:flex;gap:6px;flex-shrink:0}
+.scale span{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);cursor:pointer}
+.scale span.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+.scalelbl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:3px;max-width:228px}
+.sub-h{font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;margin:14px 0 4px}
+.field{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line);font-size:14px;gap:10px}
+.field input[type=number],.field input[type=text],.field input[type=date],.field select{width:110px;border:1px solid var(--line);border-radius:10px;padding:8px;font-size:16px;text-align:right;background:var(--soft)}
+.toggle{width:50px;height:30px;border-radius:999px;background:var(--line);position:relative;cursor:pointer;flex-shrink:0;transition:.2s}
+.toggle::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.toggle.on{background:var(--win-ink)}
+.toggle.on::after{left:23px}
+.suggest{background:var(--infobg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:13px;display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:6px}
+.suggest button{border:0;background:var(--lut-ink);color:#fff;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:600;white-space:nowrap;cursor:pointer}
+.addbox{display:none;gap:8px;margin-top:4px}
+.addbox.on{display:flex}
+.addbox input,.addbox select{flex:1;border:1px solid var(--line);border-radius:10px;padding:9px;font-size:16px;background:var(--soft);min-width:0}
+.addbox button{border:0;background:var(--ink);color:var(--bg);border-radius:10px;padding:0 14px;font-weight:600;cursor:pointer}
+textarea{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;font-size:16px;min-height:70px;background:var(--soft)}
+.heat{display:grid;gap:2px;font-size:10px}
+.heat .hl{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:4px;display:flex;align-items:center}
+.heat .hc{height:15px;border-radius:3px}
+.phasebar{display:grid;gap:2px;margin-top:4px}
+.phasebar div{height:6px;border-radius:2px}
+.scrim{position:fixed;inset:0;background:rgba(10,8,14,.4);display:none;z-index:40}
+.scrim.on{display:block}
+.sheet{position:fixed;left:50%;transform:translate(-50%,110%);bottom:0;width:100%;max-width:500px;max-height:88vh;overflow:auto;background:var(--bg);border-radius:22px 22px 0 0;padding:10px 18px calc(26px + env(safe-area-inset-bottom));z-index:50;transition:transform .28s ease}
+.sheet.on{transform:translate(-50%,0)}
+.grab{width:40px;height:5px;background:var(--line);border-radius:3px;margin:0 auto 12px}
+.sheet input[type=password],.sheet input[type=date],.sheet input[type=text]{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:16px;background:var(--card);margin:6px 0}
+nav.tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:500px;background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;justify-content:space-around;align-items:center;padding:8px 6px calc(10px + env(safe-area-inset-bottom));z-index:30}
+nav.tabs button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;color:var(--muted);font-weight:600;width:20%;cursor:pointer}
+nav.tabs button .i{font-size:20px;line-height:1}
+nav.tabs button.on{color:var(--ink)}
+nav.tabs .plus{width:54px;height:54px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:28px;margin-top:-26px;box-shadow:0 6px 16px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center}
+.toast{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--accent);color:var(--accent-ink);padding:10px 16px;border-radius:999px;font-size:14px;opacity:0;transition:.25s;z-index:60;pointer-events:none;max-width:90%;text-align:center}
+.toast.on{opacity:1}
+.list .it{display:flex;justify-content:space-between;align-items:center;padding:13px 0;border-top:1px solid var(--line);font-size:15px;gap:10px;cursor:default}
+.list .it.tap{cursor:pointer}
+.list .it:first-of-type{border-top:0}
+.foot{text-align:center;font-size:11.5px;color:var(--muted);padding:18px 10px 0;line-height:1.5}
+.empty{text-align:center;color:var(--muted);font-size:14px;padding:18px 8px;line-height:1.5}
+.bar{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--lut-ink)}
+.progress{font-size:14px;color:var(--muted);margin:10px 0}
+#report{display:none}
+@media print{
+  body *{visibility:hidden}
+  #report,#report *{visibility:visible}
+  #report{display:block;position:absolute;left:0;top:0;width:100%;color:#000;background:#fff;font-size:12px;padding:10px}
+  #report table{border-collapse:collapse;width:100%;margin:8px 0}
+  #report td,#report th{border:1px solid #bbb;padding:4px 6px;text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- HEUTE -->
+<section class="screen on" id="s-heute">
+  <header class="top"><div><div class="sub" id="todayStr"></div><h1>Heute</h1></div><button class="iconbtn" onclick="go('mehr')" aria-label="Einstellungen">⚙︎</button></header>
+  <div class="card">
+    <div class="ringwrap"><svg id="ring" width="250" height="250" viewBox="0 0 250 250"></svg>
+      <div class="ringcenter"><div class="label" id="cdLabel">Zyklustag</div><div class="big" id="cdBig">–</div><div class="ph" id="phBig"></div></div>
+    </div>
+    <div class="week" id="week"></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="label">Nächste Periode</div><div class="v" id="nextP">–</div><div class="s" id="nextPs"></div></div>
+    <div class="stat"><div class="label">Ø Zykluslänge</div><div class="v" id="avgL">–</div><div class="s" id="avgLs"></div></div>
+  </div>
+  <div id="hints"></div>
+  <div class="card">
+    <div class="row between"><h3 style="margin:0">Schnell-Eintrag</h3><span class="small" id="quickState"></span></div>
+    <div id="quick"></div>
+    <div class="row" style="gap:8px;margin-top:12px"><button class="btn small" onclick="saveQuick()">Speichern</button><button class="btn small ghost" onclick="openEntry(TODAY())">Ausführlich eintragen</button></div>
+  </div>
+  <div class="foot">Takt speichert alles nur auf diesem iPhone.<br>Keine Verhütungs-App, kein Medizinprodukt.</div>
+</section>
+
+<!-- KALENDER -->
+<section class="screen" id="s-kalender">
+  <header class="top"><div><div class="sub">Tippe einen Tag an – auch rückwirkend</div><h1>Kalender</h1></div></header>
+  <div class="card">
+    <div class="calhead"><button class="iconbtn" onclick="shiftMonth(-1)" aria-label="Vormonat">‹</button><h2 id="monTitle"></h2><button class="iconbtn" onclick="shiftMonth(1)" aria-label="Folgemonat">›</button></div>
+    <div class="grid7" id="dow"></div>
+    <div class="grid7" id="cal"></div>
+    <div class="legend">
+      <span><i style="background:var(--mens)"></i>Periode</span>
+      <span><i style="border:2px dashed var(--mens)"></i>Prognose</span>
+      <span><i style="background:var(--win)"></i>Fenster um den Eisprung</span>
+      <span><i style="background:var(--ovu)"></i>Eisprung (geschätzt)</span>
+      <span><i style="background:var(--lut)"></i>Lutealphase</span>
+      <span><i style="background:var(--ink);width:5px;height:5px;opacity:.6;vertical-align:1px"></i>Eintrag</span>
+    </div>
+  </div>
+  <div class="small" style="padding:0 6px">Das Fenster um den Eisprung ist eine Schätzung aus deinen Zykluslängen. Wird die nächste Periode eingetragen, ordnet Takt alle Phasen rückwirkend neu zu.</div>
+</section>
+
+<!-- EINTRAGEN -->
+<section class="screen" id="s-eintragen">
+  <header class="top"><div><div class="sub">Am besten abends · Skala 1–6</div><h1>Eintragen</h1></div></header>
+  <div class="datebar">
+    <button onclick="entryShift(-1)" aria-label="Vortag">‹</button>
+    <div class="t"><b id="eDate"></b><span class="small" id="ePhase"></span></div>
+    <button onclick="entryShift(1)" aria-label="Folgetag">›</button>
+  </div>
+  <div id="sections"></div>
+  <button class="btn" onclick="saveEntry()">Speichern</button>
+  <div class="foot">Nicht ausgewählte Symptome zählen als „gar nicht“.<br>Freie Einträge, die öfter vorkommen, schlägt Takt als Standard vor.</div>
+</section>
+
+<!-- MUSTER -->
+<section class="screen" id="s-muster">
+  <header class="top"><div><div class="sub" id="musterSub"></div><h1>Muster</h1></div></header>
+  <div id="musterBody"></div>
+</section>
+
+<!-- MEHR -->
+<section class="screen" id="s-mehr">
+  <header class="top"><div><div class="sub">Einstellungen, Daten & Wissen</div><h1>Mehr</h1></div></header>
+  <div class="card list" id="settingsList"></div>
+  <div class="card list" id="dataList"></div>
+  <div class="card"><h3>Abend-Erinnerung einrichten</h3>
+    <div class="small">Öffne die App <b>Kurzbefehle</b> → <b>Automation</b> → <b>+</b> → <b>Tageszeit</b> (z. B. 21:00, täglich, „Sofort ausführen“) → Aktion <b>App öffnen</b> und dort <b>Takt</b> wählen. Alternativ eine tägliche Erinnerung in der Erinnerungen-App.</div>
+  </div>
+  <div class="card"><div class="label" style="margin-bottom:6px">Wissen – worauf Takt beruht</div><div id="wissen"></div></div>
+  <div class="foot" id="versionFoot"></div>
+</section>
+</div>
+
+<div class="scrim" id="scrim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet"><div class="grab"></div><div id="sheetBody"></div></div>
+<div class="toast" id="toast"></div>
+<input type="file" id="fileInput" style="display:none">
+<div id="report"></div>
+
+<nav class="tabs">
+  <button data-t="heute" class="on" onclick="go('heute')"><span class="i">◐</span>Heute</button>
+  <button data-t="kalender" onclick="go('kalender')"><span class="i">▦</span>Kalender</button>
+  <button data-t="eintragen" onclick="openEntry(TODAY())" aria-label="Eintragen"><span class="plus">+</span></button>
+  <button data-t="muster" onclick="go('muster')"><span class="i">▤</span>Muster</button>
+  <button data-t="mehr" onclick="go('mehr')"><span class="i">⋯</span>Mehr</button>
+</nav>
+
+<script>
+"use strict";
+/* =========================================================
+   Takt – Zyklus-Tracking. Alle Daten bleiben lokal.
+   ========================================================= */
+const VERSION = '1.0.0';
+const DATA_VERSION = 1;
+const KEY = location.hash === '#demo' ? 'takt.demo' : 'takt.v1';
+const DAY = 864e5;
+const MON = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const WD = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+
+/* ---------- Datum ---------- */
+function D(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d, 12); }
+function iso(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function add(d,n){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()+n, 12); }
+function diff(a,b){ return Math.round((a-b)/DAY); }
+function TODAY(){ const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12); }
+function fmtD(d){ return `${WD[d.getDay()]}, ${d.getDate()}. ${MON[d.getMonth()]}`; }
+function fmtShort(d){ return `${d.getDate()}.${d.getMonth()+1}.`; }
+const mean = a => a.length ? a.reduce((x,y)=>x+y,0)/a.length : NaN;
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = (x,d=1) => (Math.round(x*10**d)/10**d).toString().replace('.',',');
+
+/* ---------- Kataloge ---------- */
+const DEFAULT_PRESETS = {
+  koerper:['Unterleibsschmerzen','Brustspannen','Blähbauch','Kopfschmerzen','Rückenschmerzen','Gelenk-/Muskelschmerzen','Müdigkeit','Übelkeit','Verdauung'],
+  pos:['Ausgeglichen','Fröhlich','Gelassen','Motiviert','Gesellig','Fokussiert','Selbstbewusst','Kreativ'],
+  neg:['Niedergeschlagen','Hoffnungslos','Wertlos/schuldig','Ängstlich/angespannt','Stimmungsschwankungen','Empfindlich','Gereizt/wütend','Konflikte','Weniger Interesse','Antriebslos','Überfordert','Außer Kontrolle'],
+  haut:['Unreinheiten','Fettige Haut','Trockene Haut','Rötungen/empfindlich'],
+  crav:['Süßes','Schokolade','Salziges','Fettiges','Kohlenhydrate','Proteinreiches'],
+  sport:['Laufen','Krafttraining','Yoga','Radfahren','Schwimmen','Spazieren'],
+  stress:['Arbeit','Privat','Gesundheit','Termine','Schlafmangel'],
+  kontext:['Erkältet','Fieber','Alkohol','Reise/Zeitzone','Arzttermin','Besonderer Tag']
+};
+const SEV_SECTIONS = ['koerper','pos','neg','haut'];
+const SECTION_NAME = {koerper:'Körper',pos:'Stimmung – positiv',neg:'Stimmung – belastend',haut:'Haut',crav:'Heißhunger',sport:'Sport',stress:'Stress-Quellen',kontext:'Kontext'};
+const BLEED = ['Keine','Schmierblutung','Leicht','Mittel','Stark'];
+const isBleed = b => b==='Leicht'||b==='Mittel'||b==='Stark';
+
+/* ---------- Zustand ---------- */
+function emptyState(){
+  return { version: DATA_VERSION, starts: [], days: {}, meds: [], hypotheses: [],
+    settings: { defaultLen: 26, autoAdapt: true, blind: true, theme: 'auto', showWeight: false, presets: JSON.parse(JSON.stringify(DEFAULT_PRESETS)), dismissed: [], lastBackup: null, onboarded: false } };
+}
+let S;
+function load(){
+  try { S = JSON.parse(localStorage.getItem(KEY)); } catch(e){ S = null; }
+  if (!S || typeof S !== 'object') S = emptyState();
+  migrate();
+}
+function migrate(){
+  const base = emptyState();
+  S.settings = Object.assign(base.settings, S.settings||{});
+  for (const k in DEFAULT_PRESETS) if (!Array.isArray(S.settings.presets[k])) S.settings.presets[k] = DEFAULT_PRESETS[k].slice();
+  S.starts = Array.isArray(S.starts) ? S.starts : [];
+  S.days = S.days || {}; S.meds = S.meds || []; S.hypotheses = S.hypotheses || [];
+  S.version = DATA_VERSION;
+}
+function save(){
+  try { localStorage.setItem(KEY, JSON.stringify(S)); }
+  catch(e){ toast('Speichern fehlgeschlagen – bitte Backup erstellen'); }
+}
+function normStarts(){
+  const s = [...new Set(S.starts)].sort();
+  const out = [];
+  for (const x of s){ if (!out.length || diff(D(x), D(out[out.length-1])) >= 10) out.push(x); }
+  S.starts = out;
+}
+
+/* ---------- Zykluslogik ---------- */
+let CY = null; // Cache
+function computeCycles(){
+  normStarts();
+  const st = S.starts.map(D);
+  const lens = [];
+  for (let i=1;i<st.length;i++) lens.push(diff(st[i], st[i-1]));
+  const valid = lens.filter(l => l>=15 && l<=60);
+  const recent = valid.slice(-6);
+  const adapt = S.settings.autoAdapt && recent.length >= 3;
+  const avg = adapt ? mean(recent) : S.settings.defaultLen;
+  const L = Math.round(avg);
+  const Lmin = adapt ? Math.min(...recent) : L-2;
+  const Lmax = adapt ? Math.max(...recent) : L+2;
+  CY = { st, lens, recent, avg, L, Lmin, Lmax, adapt };
+  return CY;
+}
+function mensLenFrom(start){
+  let n = 0;
+  for (let i=0;i<12;i++){ const d = S.days[iso(add(start,i))]; if (d && isBleed(d.bleed)) n = i+1; else if (i>=n+1 && n>0) break; else if (i>2 && n===0) break; }
+  return n;
+}
+function phaseFor(cd, len, mensLen){
+  const ovu = len - 13;
+  if (cd <= mensLen) return 'mens';
+  if (cd >= ovu-1 && cd <= ovu+1) return 'ovu';
+  if (cd >= ovu-5 && cd <= ovu+1) return 'win';
+  if (cd > ovu+1) return cd > len-5 ? 'late' : 'lut';
+  return 'fol';
+}
+function infoFor(date){
+  const {st, L} = CY;
+  let idx = -1;
+  for (let i=0;i<st.length;i++) if (st[i] <= date) idx = i; else break;
+  if (idx < 0) return null;
+  let start = st[idx], len, predicted = false, overdue = false;
+  const t = TODAY();
+  if (idx < st.length-1){ len = diff(st[idx+1], start); }
+  else {
+    len = L;
+    let k = diff(date, start);
+    if (k >= len){
+      if (date <= t || diff(t,start) >= len){
+        // aktueller Zyklus ist länger als vorhergesagt
+        const curLen = Math.max(len, diff(t,start)+1);
+        if (diff(date,start) < curLen){ len = curLen; overdue = true; }
+        else { start = add(start, curLen); k = diff(date,start); predicted = true; while (k >= L){ start = add(start,L); k -= L; } len = L; }
+      } else { while (k >= len){ start = add(start,len); k -= len; } predicted = true; }
+    }
+  }
+  const cd = diff(date, start) + 1;
+  let mensLen = predicted ? 5 : (mensLenFrom(start) || (start <= t ? Math.min(5, diff(t,start)+1) : 5));
+  let phase = phaseFor(cd, overdue ? Math.max(L, CY.L) : len, mensLen);
+  if (overdue && cd > L) phase = 'over';
+  if (predicted && phase === 'mens') phase = 'pmens';
+  return { cd, len, start, predicted, overdue, phase, mensLen };
+}
+const PH = {
+  mens:{n:'Menstruation',c:'var(--mens)',fg:'#fff'}, pmens:{n:'Periode (Prognose)',c:'var(--mens-soft)'},
+  fol:{n:'Follikelphase',c:'var(--fol)'}, win:{n:'Fenster um den Eisprung',c:'var(--win)'},
+  ovu:{n:'Eisprung (geschätzt)',c:'var(--ovu)',fg:'#fff'}, lut:{n:'Lutealphase',c:'var(--lut)'},
+  late:{n:'Späte Lutealphase',c:'var(--late)'}, over:{n:'Periode überfällig',c:'var(--late)'}
+};
+function nextPeriod(){
+  const {st, L, Lmin, Lmax} = CY;
+  if (!st.length) return null;
+  const last = st[st.length-1], t = TODAY();
+  return { date: add(last, L), min: add(last, Lmin), max: add(last, Lmax), overdueDays: diff(t, add(last, Lmax)) };
+}
+
+/* ---------- Navigation & UI-Helfer ---------- */
+let current = 'heute';
+function go(t){
+  current = t;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('on'));
+  document.getElementById('s-'+t).classList.add('on');
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  if (t==='heute') renderHeute();
+  if (t==='kalender') renderCal();
+  if (t==='muster') renderMuster();
+  if (t==='mehr') renderMehr();
+  window.scrollTo(0,0);
+}
+let toastT;
+function toast(m){ const t = document.getElementById('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.remove('on'), 2400); }
+function openSheet(html){ document.getElementById('sheetBody').innerHTML = html; document.getElementById('scrim').classList.add('on'); document.getElementById('sheet').classList.add('on'); }
+function closeSheet(){ document.getElementById('scrim').classList.remove('on'); document.getElementById('sheet').classList.remove('on'); }
+function scaleHTML(name, val, lo, hi){
+  return `<div><div class="scale" data-scale="${esc(name)}">${[1,2,3,4,5,6].map(i=>`<span class="${val===i?'on':''}">${i}</span>`).join('')}</div>${lo?`<div class="scalelbl"><span>${lo}</span><span>${hi}</span></div>`:''}</div>`;
+}
+function readScale(root, name){ const s = root.querySelector(`.scale[data-scale="${CSS.escape(name)}"] span.on`); return s ? +s.textContent : null; }
+document.addEventListener('click', e => {
+  const sp = e.target.closest('.scale span');
+  if (sp){ const was = sp.classList.contains('on'); sp.parentNode.querySelectorAll('span').forEach(x=>x.classList.remove('on')); if (!was) sp.classList.add('on'); return; }
+  const c = e.target.closest('.chip');
+  if (c && !c.classList.contains('add') && !c.dataset.nochip){
+    const grp = c.parentNode;
+    if (grp.classList.contains('single')){ grp.querySelectorAll('.chip').forEach(x=>x.classList.remove('on')); c.classList.add('on'); }
+    else c.classList.toggle('on');
+    if (grp.dataset.sev) updateSevRows(grp.dataset.sev);
+    if (grp.dataset.sec) updateCount(grp.dataset.sec);
+  }
+});
+function applyTheme(){
+  const t = S.settings.theme;
+  if (t==='auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', t);
+}
+
+/* ---------- HEUTE ---------- */
+function renderHeute(){
+  computeCycles();
+  const t = TODAY();
+  document.getElementById('todayStr').textContent = fmtD(t);
+  const inf = infoFor(t);
+  const ring = document.getElementById('ring');
+  if (!inf){
+    document.getElementById('cdLabel').textContent = 'Noch keine Periode';
+    document.getElementById('cdBig').textContent = '–';
+    document.getElementById('phBig').textContent = 'Trag deine letzte Periode ein';
+    ring.innerHTML = `<circle cx="125" cy="125" r="104" stroke="var(--line)" stroke-width="16" fill="none"/>`;
+    document.getElementById('week').innerHTML = '';
+    document.getElementById('nextP').textContent = '–'; document.getElementById('nextPs').textContent = '';
+    document.getElementById('avgL').textContent = S.settings.defaultLen+' Tage'; document.getElementById('avgLs').textContent = 'Startwert';
+  } else {
+    document.getElementById('cdLabel').textContent = 'Zyklustag';
+    document.getElementById('cdBig').textContent = inf.cd;
+    const pb = document.getElementById('phBig'); pb.textContent = PH[inf.phase].n;
+    pb.style.color = {lut:'var(--lut-ink)',late:'var(--lut-ink)',over:'var(--lut-ink)',win:'var(--win-ink)',ovu:'var(--ovu)',mens:'var(--mens)',fol:'var(--fol-ink)'}[inf.phase] || 'var(--ink)';
+    const cx=125, cy=125, r=104, len = Math.max(inf.len, inf.cd);
+    let h = '';
+    for (let d=1; d<=len; d++){
+      const a0 = (d-1)/len*2*Math.PI - Math.PI/2 + 0.025, a1 = d/len*2*Math.PI - Math.PI/2 - 0.025;
+      const p = d > inf.len ? 'over' : phaseFor(d, inf.len, inf.mensLen);
+      h += `<path d="M${cx+r*Math.cos(a0)} ${cy+r*Math.sin(a0)} A${r} ${r} 0 0 1 ${cx+r*Math.cos(a1)} ${cy+r*Math.sin(a1)}" stroke="${PH[p].c}" stroke-width="${d===inf.cd?22:16}" fill="none"/>`;
+    }
+    const am = (inf.cd-0.5)/len*2*Math.PI - Math.PI/2;
+    h += `<circle cx="${cx+r*Math.cos(am)}" cy="${cy+r*Math.sin(am)}" r="8" fill="var(--card)" stroke="var(--ink)" stroke-width="3"/>`;
+    ring.innerHTML = h;
+    let w = '';
+    for (let i=-3;i<=3;i++){
+      const d = add(t,i), f = infoFor(d);
+      const ph = f ? PH[f.phase] : {c:'var(--soft)'};
+      w += `<div class="wd ${i===0?'today':''}" onclick="${i<=0?`openEntry(D('${iso(d)}'))`:''}"><span>${WD[d.getDay()]}</span><div class="c" style="background:${ph.c};${ph.fg?'color:'+ph.fg:''}">${d.getDate()}</div></div>`;
+    }
+    document.getElementById('week').innerHTML = w;
+    const np = nextPeriod();
+    const dn = diff(np.date, t);
+    if (np.overdueDays > 0){ document.getElementById('nextP').textContent = `${np.overdueDays} Tag${np.overdueDays>1?'e':''} später`; document.getElementById('nextPs').textContent = 'als die Prognose-Spanne'; }
+    else { document.getElementById('nextP').textContent = dn > 0 ? `in ${dn} Tag${dn>1?'en':''}` : (dn===0 ? 'heute erwartet' : 'jederzeit'); document.getElementById('nextPs').textContent = `${fmtShort(np.min)}–${fmtShort(np.max)}`; }
+    document.getElementById('avgL').textContent = `${num(CY.avg)} Tage`;
+    document.getElementById('avgLs').textContent = CY.adapt ? `aus ${CY.recent.length} Zyklen · ${CY.Lmin}–${CY.Lmax}` : `Startwert (ab 3 Zyklen eigener Wert)`;
+  }
+  renderHints();
+  renderQuick();
+  if (!S.settings.onboarded) setTimeout(onboarding, 300);
+}
+function renderHints(){
+  const out = [];
+  const np = nextPeriod();
+  if (np && np.overdueDays >= 3) out.push(['warn','Periode später als erwartet', `Sie ist ${np.overdueDays} Tage nach dem Ende deiner üblichen Spanne noch nicht eingetragen. Schwankungen sind normal – hast du sie vielleicht nur noch nicht erfasst?`]);
+  const {lens} = CY; const last = lens.slice(-6);
+  if (last.length && (Math.min(...last) < 24 || Math.max(...last) > 38)) out.push(['warn','Zykluslänge außerhalb des Normbereichs', `Mindestens ein Zyklus lag außerhalb von 24–38 Tagen (FIGO). Einzelne Ausreißer sind häufig; wiederholt sich das, lohnt sich ein Gespräch mit deiner Frauenärztin.`]);
+  else if (last.length >= 4 && Math.max(...last) - Math.min(...last) > 9) out.push(['warn','Zykluslängen schwanken stark', `Kürzester und längster Zyklus liegen mehr als 9 Tage auseinander (FIGO-Grenze: 7–9 Tage).`]);
+  const heavy = recentHeavy();
+  if (heavy) out.push(['warn','Starke Blutung', heavy]);
+  const lb = S.settings.lastBackup ? diff(TODAY(), D(S.settings.lastBackup)) : null;
+  if (Object.keys(S.days).length >= 7 && (lb === null || lb > 14)) out.push(['', 'Backup fällig', `${lb===null?'Du hast noch kein Backup erstellt.':`Dein letztes Backup ist ${lb} Tage alt.`} <a href="#" onclick="event.preventDefault();exportBackup()" class="src">Jetzt sichern</a>`]);
+  document.getElementById('hints').innerHTML = out.map(([c,t,p]) => `<div class="info ${c}"><b>${t}</b><p>${p}</p></div>`).join('');
+}
+function recentHeavy(){
+  const t = TODAY();
+  for (let i=0;i<10;i++){
+    const d = S.days[iso(add(t,-i))];
+    if (d && isBleed(d.bleed) && ((d.chg && d.chg >= 8) || d.clots)) return `Am ${fmtShort(add(t,-i))} hast du ${d.chg>=8?'sehr häufige Wechsel':''}${d.chg>=8&&d.clots?' und ':''}${d.clots?'Klumpen':''} eingetragen. Als Hinweis auf starke Blutung gilt, wenn Binde oder Tampon innerhalb von 3 Stunden durchnässt sind oder Klumpen größer als 2,5 cm abgehen. Hält das an, kläre es ärztlich ab.`;
+  }
+  return null;
+}
+function renderQuick(){
+  const d = S.days[iso(TODAY())] || {};
+  document.getElementById('quickState').textContent = d.full ? 'heute ausführlich erfasst ✓' : (d.mood||d.energy||d.pain ? 'gespeichert ✓' : '');
+  document.getElementById('quick').innerHTML =
+    `<div class="sevrow" style="border-top:0"><span>Energie</span>${scaleHTML('q-energy', d.energy, 'sehr niedrig','sehr hoch')}</div>
+     <div class="sevrow"><span>Stimmung</span>${scaleHTML('q-mood', d.mood, 'sehr schlecht','sehr gut')}</div>
+     <div class="sevrow"><span>Schmerz</span>${scaleHTML('q-pain', d.pain, 'keiner','extrem')}</div>`;
+}
+function saveQuick(){
+  const root = document.getElementById('quick');
+  const k = iso(TODAY()); const d = S.days[k] || {};
+  const e = readScale(root,'q-energy'), m = readScale(root,'q-mood'), p = readScale(root,'q-pain');
+  if (e==null && m==null && p==null){ toast('Wähle mindestens einen Wert'); return; }
+  if (e!=null) d.energy = e; if (m!=null) d.mood = m; if (p!=null) d.pain = p;
+  S.days[k] = d; save(); renderQuick(); toast('Gespeichert');
+}
+
+/* ---------- Onboarding ---------- */
+function onboarding(){
+  if (S.settings.onboarded || document.getElementById('sheet').classList.contains('on')) return;
+  openSheet(`<h2 style="margin:4px 0 6px">Willkommen bei Takt</h2>
+    <p class="small">Takt speichert alles nur auf diesem iPhone. Für den Start brauchst du deine bisherigen Perioden – entweder aus Apple Health oder von Hand.</p>
+    <div style="display:grid;gap:8px;margin-top:14px">
+      <button class="btn" onclick="closeSheet();healthHelp()">Aus Apple Health importieren</button>
+      <button class="btn ghost" onclick="lastPeriodSheet()">Letzte Periode eintragen</button>
+      <button class="btn ghost" onclick="S.settings.onboarded=true;save();closeSheet()">Später</button>
+    </div>`);
+}
+function lastPeriodSheet(){
+  openSheet(`<h3>Wann hat deine letzte Periode begonnen?</h3><input type="date" id="lpDate" max="${iso(TODAY())}" value="${iso(add(TODAY(),-14))}">
+    <button class="btn" style="margin-top:8px" onclick="setLastPeriod()">Übernehmen</button>`);
+}
+function setLastPeriod(){
+  const v = document.getElementById('lpDate').value; if (!v) return;
+  S.starts.push(v); S.settings.onboarded = true; save(); closeSheet(); renderHeute(); toast('Periodenbeginn eingetragen');
+}
+
+/* ---------- KALENDER ---------- */
+let calM = null;
+function shiftMonth(n){ calM = new Date(calM.getFullYear(), calM.getMonth()+n, 1, 12); renderCal(); }
+function hasEntry(k){ const d = S.days[k]; return !!(d && (d.full || d.mood || d.energy || d.pain || d.bleed)); }
+function renderCal(){
+  computeCycles();
+  if (!calM){ const t = TODAY(); calM = new Date(t.getFullYear(), t.getMonth(), 1, 12); }
+  document.getElementById('monTitle').textContent = `${MON[calM.getMonth()]} ${calM.getFullYear()}`;
+  document.getElementById('dow').innerHTML = ['Mo','Di','Mi','Do','Fr','Sa','So'].map(x=>`<div class="dow">${x}</div>`).join('');
+  const offset = (calM.getDay()+6)%7, t = iso(TODAY());
+  let h = '';
+  for (let i=0;i<42;i++){
+    const d = add(calM, i-offset), k = iso(d), f = infoFor(d);
+    const out = d.getMonth() !== calM.getMonth();
+    if (i>=35 && out) break;
+    let cls = 'day' + (out?' out':'');
+    const dd = S.days[k];
+    if (dd && isBleed(dd.bleed)) cls += ' mens';
+    else if (dd && dd.bleed==='Schmierblutung') cls += ' spot';
+    else if (f){
+      if (f.phase==='pmens') cls += ' pmens';
+      else if (f.phase==='ovu') cls += ' ovu win';
+      else if (f.phase==='win') cls += ' win';
+      else if (f.phase==='lut'||f.phase==='late'||f.phase==='over') cls += ' lut';
+      else if (f.phase==='mens' && k > t) cls += ' pmens';
+    }
+    if (k === t) cls += ' today';
+    h += `<div class="${cls}" onclick="openDay('${k}')"><div class="n">${d.getDate()}</div>${hasEntry(k)?'<span class="dot"></span>':''}</div>`;
+  }
+  document.getElementById('cal').innerHTML = h;
+}
+function daySummary(d){
+  if (!d) return '';
+  const parts = [];
+  if (d.bleed && d.bleed!=='Keine') parts.push(`<b>Blutung:</b> ${esc(d.bleed)}${d.chg?` (${d.chg}× gewechselt)`:''}`);
+  const q = []; if (d.mood) q.push(`Stimmung ${d.mood}`); if (d.energy) q.push(`Energie ${d.energy}`); if (d.pain) q.push(`Schmerz ${d.pain}`);
+  if (q.length) parts.push(q.join(' · '));
+  const sy = Object.entries(d.sym||{}).map(([k,v])=>`${esc(k.split('|')[1])} (${v})`);
+  if (sy.length) parts.push(`<b>Symptome:</b> ${sy.join(', ')}`);
+  if (d.hunger && (d.hunger.crav||[]).length) parts.push(`<b>Heißhunger:</b> ${d.hunger.crav.map(esc).join(', ')}`);
+  if (d.sleep && d.sleep.h) parts.push(`<b>Schlaf:</b> ${num(d.sleep.h)} h${d.sleep.q?` · Qualität ${d.sleep.q}`:''}`);
+  if (d.stress && d.stress.lvl) parts.push(`<b>Stress:</b> ${d.stress.lvl}`);
+  if ((d.meds||[]).length) parts.push(`<b>Medikamente:</b> ${d.meds.map(esc).join(', ')}`);
+  if (d.note) parts.push(`<b>Notiz:</b> ${esc(d.note)}`);
+  return parts.join('<br>');
+}
+function openDay(k){
+  computeCycles();
+  const d = D(k), f = infoFor(d), past = d <= TODAY(), isStart = S.starts.includes(k);
+  let body = `<div class="label">${f && !f.predicted ? 'Zyklustag '+f.cd : (f ? 'Prognose' : '')}</div><h2 style="margin:4px 0 8px">${fmtD(d)} ${d.getFullYear()!==TODAY().getFullYear()?d.getFullYear():''}</h2>`;
+  if (f) body += `<span class="tag" style="margin:0;background:${PH[f.phase].c};${PH[f.phase].fg?'color:'+PH[f.phase].fg:'color:var(--ink)'};font-size:13px;padding:4px 10px;border-radius:999px">${PH[f.phase].n}</span>`;
+  const sum = daySummary(S.days[k]);
+  body += sum ? `<div class="card small" style="color:var(--ink)">${sum}</div>` : (past ? `<p class="small">Für diesen Tag gibt es noch keinen Eintrag.</p>` : `<p class="small">Prognose – passt sich an, sobald du deine nächste Periode einträgst.</p>`);
+  body += `<div style="display:grid;gap:8px;margin-top:12px">`;
+  if (past) body += `<button class="btn" onclick="closeSheet();openEntry(D('${k}'))">${sum?'Eintrag bearbeiten':'Nachtragen'}</button>`;
+  if (past) body += `<button class="btn ghost" onclick="toggleStart('${k}')">${isStart?'Periodenbeginn entfernen':'Periode beginnt an diesem Tag'}</button>`;
+  body += `</div>`;
+  openSheet(body);
+}
+function toggleStart(k){
+  if (S.starts.includes(k)) S.starts = S.starts.filter(x=>x!==k);
+  else { S.starts = S.starts.filter(x => Math.abs(diff(D(x),D(k))) >= 10); S.starts.push(k); const d = S.days[k] || {}; if (!isBleed(d.bleed)){ d.bleed = 'Mittel'; S.days[k] = d; } }
+  S.settings.onboarded = true; save(); closeSheet(); renderCal(); toast('Phasen neu berechnet');
+}
+
+/* ---------- EINTRAGEN ---------- */
+let entryDate = null;
+function openEntry(d){ entryDate = d; renderEntry(); go('eintragen'); }
+function entryShift(n){ const nd = add(entryDate,n); if (nd > TODAY()){ toast('Zukünftige Tage kannst du nicht eintragen'); return; } entryDate = nd; renderEntry(); }
+function freeCounts(sec){
+  const preset = new Set(S.settings.presets[sec]); const cnt = {};
+  for (const d of Object.values(S.days)){
+    let items = [];
+    if (SEV_SECTIONS.includes(sec)) items = Object.keys(d.sym||{}).filter(k=>k.startsWith(sec+'|')).map(k=>k.slice(sec.length+1));
+    else if (sec==='crav') items = (d.hunger&&d.hunger.crav)||[];
+    else if (sec==='sport') items = (d.sport&&d.sport.t)||[];
+    else if (sec==='stress') items = (d.stress&&d.stress.src)||[];
+    else if (sec==='kontext') items = d.ctx||[];
+    for (const it of items) if (!preset.has(it)) cnt[it] = (cnt[it]||0)+1;
+  }
+  return cnt;
+}
+function suggestHTML(sec){
+  const c = freeCounts(sec);
+  return Object.entries(c).filter(([k,v]) => v>=3 && !S.settings.dismissed.includes(sec+'|'+k)).slice(0,2).map(([k,v]) =>
+    `<div class="suggest"><span>„${esc(k)}“ hast du ${v}× frei eingetragen. Als Standard aufnehmen?</span><span class="row" style="gap:6px"><button onclick="adoptPreset('${sec}','${esc(k).replace(/'/g,"\\'")}')">Aufnehmen</button><button style="background:var(--line);color:var(--ink)" onclick="dismissSuggest('${sec}','${esc(k).replace(/'/g,"\\'")}')">Nein</button></span></div>`).join('');
+}
+function adoptPreset(sec,k){ S.settings.presets[sec].push(k); save(); collectEntry(true); renderEntry(); toast('In die Vorauswahl übernommen'); }
+function dismissSuggest(sec,k){ S.settings.dismissed.push(sec+'|'+k); save(); collectEntry(true); renderEntry(); }
+function chipGroup(sec, selected, opts={}){
+  const items = [...S.settings.presets[sec]]; const extra = selected.filter(x=>!items.includes(x));
+  return `<div class="chips" data-sec="${sec}" ${opts.sev?`data-sev="${sec}"`:''}>${items.map(c=>`<span class="chip ${selected.includes(c)?'on':''}">${esc(c)}</span>`).join('')}${extra.map(c=>`<span class="chip free on">${esc(c)}</span>`).join('')}<span class="chip add" onclick="this.parentNode.nextElementSibling.classList.toggle('on');this.parentNode.nextElementSibling.querySelector('input').focus()">+ eigenes</span></div>
+    <div class="addbox"><input placeholder="Freitext" onkeydown="if(event.key==='Enter'){event.preventDefault();addFree(this.nextElementSibling)}"><button onclick="addFree(this)">OK</button></div>`;
+}
+function addFree(btn){
+  const inp = btn.previousElementSibling, v = inp.value.trim(); if (!v) return;
+  const chips = btn.parentNode.previousElementSibling;
+  if ([...chips.querySelectorAll('.chip')].some(c=>c.textContent===v)){ inp.value=''; return; }
+  const c = document.createElement('span'); c.className = 'chip free on'; c.textContent = v;
+  chips.insertBefore(c, chips.querySelector('.add')); inp.value = ''; btn.parentNode.classList.remove('on');
+  if (chips.dataset.sev) updateSevRows(chips.dataset.sev);
+  if (chips.dataset.sec) updateCount(chips.dataset.sec);
+}
+let sevCache = {};
+function updateSevRows(sec){
+  const grp = document.querySelector(`.chips[data-sev="${sec}"]`), box = document.getElementById('sev-'+sec);
+  if (!grp || !box) return;
+  box.querySelectorAll('.sevrow').forEach(r => { const v = readScale(r, 'sev'); if (v) sevCache[sec+'|'+r.dataset.k] = v; });
+  const on = [...grp.querySelectorAll('.chip.on')].map(c=>c.textContent);
+  box.innerHTML = on.map(k => `<div class="sevrow" data-k="${esc(k)}"><span>${esc(k)}</span>${scaleHTML('sev', sevCache[sec+'|'+k] || 3)}</div>`).join('');
+}
+function updateCount(sec){
+  const el = document.getElementById('cnt-'+sec); if (!el) return;
+  const n = document.querySelectorAll(`.chips[data-sec="${sec}"] .chip.on`).length;
+  el.textContent = n ? n+' gewählt' : '';
+}
+function medsHTML(d){
+  const taken = d.meds || [];
+  const all = [...new Set([...S.meds.map(m=>m.name), ...taken])];
+  return `<div class="chips" data-sec="meds">${all.map(n=>`<span class="chip ${taken.includes(n)?'on':''}">${esc(n)}</span>`).join('')}<span class="chip add" onclick="this.parentNode.nextElementSibling.classList.toggle('on')">+ neu</span></div>
+    <div class="addbox" style="flex-wrap:wrap"><input placeholder="z. B. Ibuprofen 400, B12" id="medName"><select id="medKind"><option>bei Bedarf</option><option>regelmäßig</option></select><button onclick="addMed()">OK</button></div>`;
+}
+function addMed(){
+  const n = document.getElementById('medName').value.trim(); if (!n) return;
+  if (!S.meds.find(m=>m.name===n)) S.meds.push({name:n, kind:document.getElementById('medKind').value});
+  save(); const dr = collectEntry(true); dr.meds = [...new Set([...(dr.meds||[]), n])];
+  renderEntry(); toast('Hinzugefügt');
+}
+let draft = null;
+function renderEntry(){
+  computeCycles();
+  const k = iso(entryDate), f = infoFor(entryDate);
+  const d = draft && draft._k===k ? draft : JSON.parse(JSON.stringify(S.days[k] || {}));
+  draft = null; sevCache = {};
+  for (const [kk,v] of Object.entries(d.sym||{})) sevCache[kk] = v;
+  document.getElementById('eDate').textContent = k===iso(TODAY()) ? 'Heute' : fmtD(entryDate);
+  document.getElementById('ePhase').textContent = S.settings.blind ? (d.full ? 'bereits erfasst – du bearbeitest' : '') : (f ? `Zyklustag ${f.cd} · ${PH[f.phase].n}` : '');
+  const symOf = sec => Object.keys(d.sym||{}).filter(x=>x.startsWith(sec+'|')).map(x=>x.slice(sec.length+1));
+  const H = d.hunger||{}, SL = d.sleep||{}, ST = d.stress||{}, SP = d.sport||{};
+  const secs = [
+    ['blut','Blutung','●','var(--mens-soft)', `<div class="chips single" data-sec="blut">${BLEED.map(b=>`<span class="chip ${ (d.bleed||'Keine')===b?'on':''}">${b}</span>`).join('')}</div>
+      <div class="field"><span>Produkt gewechselt<br><span class="small">Binde, Tampon, Tasse – wie oft heute?</span></span><input type="number" id="f-chg" inputmode="numeric" min="0" max="30" value="${d.chg??''}"></div>
+      <div class="field"><span>Klumpen größer als 2,5 cm</span><div class="toggle ${d.clots?'on':''}" id="f-clots" onclick="this.classList.toggle('on')"></div></div>`],
+    ['koerper','Körper','◎','var(--soft)', `<div class="sevrow" style="border-top:0"><span>Schmerz insgesamt</span>${scaleHTML('pain', d.pain, 'keiner','extrem')}</div>${suggestHTML('koerper')}${chipGroup('koerper', symOf('koerper'), {sev:1})}<div id="sev-koerper"></div>`],
+    ['pos','Stimmung','☺','var(--lut)', `<div class="sevrow" style="border-top:0"><span>Stimmung insgesamt</span>${scaleHTML('mood', d.mood, 'sehr schlecht','sehr gut')}</div>
+      <div class="sub-h">Positiv</div>${suggestHTML('pos')}${chipGroup('pos', symOf('pos'), {sev:1})}<div id="sev-pos"></div>
+      <div class="sub-h">Belastend</div>${suggestHTML('neg')}${chipGroup('neg', symOf('neg'), {sev:1})}<div id="sev-neg"></div>`],
+    ['energie','Energie & Konzentration','⚡︎','var(--fol)', `<div class="sevrow" style="border-top:0"><span>Energie</span>${scaleHTML('energy', d.energy, 'sehr niedrig','sehr hoch')}</div><div class="sevrow"><span>Konzentration</span>${scaleHTML('conc', d.conc, 'sehr schwer','sehr leicht')}</div>`],
+    ['hunger','Hunger & Essen','◒','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Hunger allgemein</span>${scaleHTML('hlvl', H.lvl, 'kaum','extrem')}</div>
+      <div class="sub-h">Heißhunger auf</div>${suggestHTML('crav')}${chipGroup('crav', H.crav||[])}
+      <div class="field"><span>Emotional gegessen<br><span class="small">aus Stress, Frust, Langeweile</span></span><div class="toggle ${H.emo?'on':''}" id="f-emo" onclick="this.classList.toggle('on')"></div></div>
+      <div class="sevrow"><span>Sättigung nach dem Essen</span>${scaleHTML('sat', H.sat, 'kaum satt','sehr satt')}</div>`],
+    ['libido','Libido','♡','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Lust</span>${scaleHTML('libido', d.libido, 'keine','sehr stark')}</div>`],
+    ['haut','Haut','◌','var(--win)', `${suggestHTML('haut')}${chipGroup('haut', symOf('haut'), {sev:1})}<div id="sev-haut"></div>`],
+    ['schlaf','Schlaf','☾','var(--lut)', `<div class="field" style="border-top:0"><span>Schlafdauer (h)</span><input type="number" id="f-sleeph" inputmode="decimal" step="0.5" min="0" max="16" value="${SL.h??''}"></div><div class="sevrow"><span>Qualität</span>${scaleHTML('sleepq', SL.q, 'sehr schlecht','sehr gut')}</div>`],
+    ['stress','Stress','≋','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Stress</span>${scaleHTML('stress', ST.lvl, 'keiner','extrem')}</div>${suggestHTML('stress')}${chipGroup('stress', ST.src||[])}`],
+    ['sport','Sport','↗','var(--win)', `${suggestHTML('sport')}${chipGroup('sport', SP.t||[])}<div class="field"><span>Dauer (Min.)</span><input type="number" id="f-spmin" inputmode="numeric" min="0" value="${SP.min??''}"></div><div class="sevrow"><span>Gefühlte Leistung</span>${scaleHTML('perf', SP.perf, 'sehr schwer','sehr stark')}</div>`],
+    ['meds','Medikamente & Supplemente','✚','var(--fol)', medsHTML(d)],
+  ];
+  if (S.settings.showWeight) secs.push(['gewicht','Gewicht','⚖','var(--soft)', `<div class="field" style="border-top:0"><span>Gewicht (kg)<br><span class="small">morgens, vor dem Frühstück</span></span><input type="number" id="f-weight" inputmode="decimal" step="0.1" value="${d.weight??''}"></div>`]);
+  secs.push(['kontext','Kontext & Notiz','✎','var(--soft)', `${suggestHTML('kontext')}${chipGroup('kontext', d.ctx||[])}<div class="sub-h">Notiz</div><textarea id="f-note" placeholder="Optional">${esc(d.note||'')}</textarea>`]);
+  document.getElementById('sections').innerHTML = secs.map(([id,t,ic,bg,b],i) =>
+    `<details class="sec" ${i<3?'open':''}><summary><span class="row"><span class="ico" style="background:${bg}">${ic}</span>${t}</span><span class="cnt" id="cnt-${id}"></span></summary><div class="body">${b}</div></details>`).join('');
+  SEV_SECTIONS.forEach(updateSevRows);
+  ['koerper','pos','neg','haut','crav','stress','sport','kontext','meds'].forEach(updateCount);
+}
+function collectEntry(keepDraft){
+  const root = document.getElementById('sections'), k = iso(entryDate);
+  const prev = S.days[k] || {};
+  const d = {};
+  const chipsOn = sec => [...root.querySelectorAll(`.chips[data-sec="${sec}"] .chip.on`)].map(c=>c.textContent);
+  d.bleed = (chipsOn('blut')[0]) || 'Keine';
+  const chg = root.querySelector('#f-chg').value; if (chg!=='') d.chg = +chg;
+  if (root.querySelector('#f-clots').classList.contains('on')) d.clots = true;
+  d.sym = {};
+  for (const sec of SEV_SECTIONS){
+    const box = document.getElementById('sev-'+sec);
+    box.querySelectorAll('.sevrow').forEach(r => { d.sym[sec+'|'+r.dataset.k] = readScale(r,'sev') || 3; });
+  }
+  const sc = n => readScale(root, n);
+  if (sc('pain')) d.pain = sc('pain'); if (sc('mood')) d.mood = sc('mood'); if (sc('energy')) d.energy = sc('energy');
+  if (sc('conc')) d.conc = sc('conc'); if (sc('libido')) d.libido = sc('libido');
+  d.hunger = { lvl: sc('hlvl'), sat: sc('sat'), crav: chipsOn('crav'), emo: root.querySelector('#f-emo').classList.contains('on') };
+  const sh = root.querySelector('#f-sleeph').value; d.sleep = { h: sh===''?null:+sh, q: sc('sleepq') };
+  d.stress = { lvl: sc('stress'), src: chipsOn('stress') };
+  const spm = root.querySelector('#f-spmin').value; d.sport = { t: chipsOn('sport'), min: spm===''?null:+spm, perf: sc('perf') };
+  d.meds = chipsOn('meds');
+  const w = root.querySelector('#f-weight'); if (w && w.value!=='') d.weight = +w.value; else if (prev.weight && !S.settings.showWeight) d.weight = prev.weight;
+  d.ctx = chipsOn('kontext');
+  const note = root.querySelector('#f-note').value.trim(); if (note) d.note = note;
+  d.full = true;
+  if (keepDraft){ d._k = k; draft = d; }
+  return d;
+}
+function saveEntry(){
+  const k = iso(entryDate), d = collectEntry(false);
+  const wasBleed = S.days[k] && isBleed(S.days[k].bleed);
+  S.days[k] = d;
+  let msg = 'Gespeichert';
+  if (isBleed(d.bleed) && !wasBleed) msg = autoStart(k) || msg;
+  save(); toast(msg);
+  go('heute');
+}
+function autoStart(k){
+  const dk = D(k);
+  if (S.starts.some(s => { const x = diff(dk, D(s)); return x >= 0 && x <= 9; })) return null;
+  const later = S.starts.find(s => { const x = diff(D(s), dk); return x > 0 && x <= 3; });
+  if (later){ S.starts = S.starts.filter(s=>s!==later); S.starts.push(k); return 'Periodenbeginn vorverlegt'; }
+  const prev = S.days[iso(add(dk,-1))];
+  if (prev && isBleed(prev.bleed)) return null;
+  S.starts.push(k); S.settings.onboarded = true; return 'Neue Periode eingetragen – Phasen neu berechnet';
+}
+
+/* ---------- AUSWERTUNG ---------- */
+// Variablen: key -> {label, good (hoeher = besser), get(day)}
+function allSymKeys(){
+  const ks = new Set();
+  for (const sec of SEV_SECTIONS) for (const it of S.settings.presets[sec]) ks.add(sec+'|'+it);
+  for (const d of Object.values(S.days)) for (const k of Object.keys(d.sym||{})) ks.add(k);
+  return [...ks];
+}
+function buildVars(){
+  const V = {};
+  for (const k of allSymKeys()){
+    const [sec,it] = k.split('|');
+    V[k] = { label: it, group: SECTION_NAME[sec], good: sec==='pos', get: d => d.full ? (d.sym&&d.sym[k]) || 1 : null };
+  }
+  V.negComp = { label:'Belastende Stimmung (Ø)', group:'Stimmung', good:false, get: d => { if (!d.full) return null; const ks = S.settings.presets.neg.map(x=>'neg|'+x); return mean(ks.map(x=>(d.sym&&d.sym[x])||1)); } };
+  V.mood = { label:'Stimmung insgesamt', group:'Stimmung', good:true, get: d => d.mood || null };
+  V.pain = { label:'Schmerz insgesamt', group:'Körper', good:false, get: d => d.pain || null };
+  V.energy = { label:'Energie', group:'Energie', good:true, get: d => d.energy || null };
+  V.conc = { label:'Konzentration', group:'Energie', good:true, get: d => d.conc || null };
+  V.libido = { label:'Libido', group:'Libido', good:true, neutral:true, get: d => d.libido || null };
+  V.hunger = { label:'Hunger', group:'Essen', good:false, neutral:true, get: d => (d.hunger&&d.hunger.lvl) || null };
+  V.sat = { label:'Sättigung', group:'Essen', good:true, neutral:true, get: d => (d.hunger&&d.hunger.sat) || null };
+  V.emo = { label:'Emotionales Essen', group:'Essen', good:false, get: d => d.full ? ((d.hunger&&d.hunger.emo)?1:0) : null };
+  for (const c of new Set([...S.settings.presets.crav, ...Object.values(S.days).flatMap(d=>(d.hunger&&d.hunger.crav)||[])]))
+    V['crav|'+c] = { label:'Heißhunger: '+c, group:'Essen', good:false, get: d => d.full ? (((d.hunger&&d.hunger.crav)||[]).includes(c)?1:0) : null };
+  V.sleepq = { label:'Schlafqualität', group:'Schlaf', good:true, get: d => (d.sleep&&d.sleep.q) || null };
+  V.sleeph = { label:'Schlafdauer', group:'Schlaf', good:true, neutral:true, get: d => (d.sleep&&d.sleep.h) || null };
+  V.stress = { label:'Stress', group:'Stress', good:false, get: d => (d.stress&&d.stress.lvl) || null };
+  V.perf = { label:'Gefühlte Sportleistung', group:'Sport', good:true, get: d => (d.sport&&d.sport.perf) || null };
+  if (S.settings.showWeight) V.weight = { label:'Gewicht', group:'Gewicht', good:false, neutral:true, get: d => d.weight || null };
+  return V;
+}
+// Zyklusmatrix: fuer jeden abgeschlossenen Zyklus Tage mit cd, cdBack (Tage bis zur naechsten Periode, -1 = Vortag), Phase
+function cycleTable(){
+  const {st} = CY; const t = TODAY(); const out = [];
+  for (let i=0;i<st.length;i++){
+    const start = st[i], end = i<st.length-1 ? st[i+1] : add(t,1), len = diff(end,start), complete = i<st.length-1;
+    if (len > 60) continue;
+    const ml = mensLenFrom(start) || 5;
+    const days = [];
+    for (let j=0;j<len;j++){
+      const dt = add(start,j), k = iso(dt), dd = S.days[k];
+      days.push({ k, cd:j+1, back: complete ? j-len : null, phase: complete ? phaseFor(j+1,len,ml) : (infoFor(dt)||{}).phase, d: dd });
+    }
+    out.push({ start, len, complete, days });
+  }
+  return out;
+}
+function vals(days, v){ return days.map(x => x.d ? v.get(x.d) : null).filter(x => x!=null && !Number.isNaN(x)); }
+function rangeOf(v, cycles){
+  const all = cycles.flatMap(c => vals(c.days, v)); if (all.length < 6) return null;
+  const lo = Math.min(...all), hi = Math.max(...all); return { lo, hi, r: Math.max(hi-lo, 1), n: all.length, active: all.filter(x => x > lo).length };
+}
+// Vergleichstypen
+const CHECKS = {
+  pre:  { name:'vor der Periode', a: x => x.back!=null && x.back>=-7 && x.back<=-1, b: x => x.cd>=4 && x.cd<=10, needComplete:true },
+  mid:  { name:'um den Eisprung', a: x => x.phase==='win'||x.phase==='ovu', b: x => x.phase!=='win'&&x.phase!=='ovu', needComplete:true },
+  mens: { name:'während der Periode', a: x => x.cd<=3, b: x => x.cd>=4, needComplete:false },
+  lut:  { name:'in der Lutealphase', a: x => x.phase==='lut'||x.phase==='late', b: x => x.phase==='fol'||x.phase==='win'||x.phase==='ovu', needComplete:true }
+};
+function check(v, type, cycles, rg){
+  const C = CHECKS[type]; let ev = 0, up = 0, down = 0; const rels = [];
+  for (const c of cycles){
+    if (C.needComplete && !c.complete) continue;
+    const a = vals(c.days.filter(C.a), v), b = vals(c.days.filter(C.b), v);
+    if (a.length < 3 || b.length < 3) continue;
+    ev++; const rel = (mean(a) - mean(b)) / rg.r; rels.push(rel);
+    if (rel >= 0.3) up++; if (rel <= -0.3) down++;
+  }
+  const m = mean(rels);
+  let res = 'open';
+  if (ev >= 2){
+    if (up >= 2 && up >= ev/2) res = 'up'; else if (down >= 2 && down >= ev/2) res = 'down'; else res = 'none';
+  }
+  return { ev, up, down, rel: m, res };
+}
+// Forschungs-Referenzen
+const REF = {
+  'crav|Süßes': { t:'lut', dir:'up', ev:'mittel', p:'In einer Kohorte mit 259 Frauen nahm Heißhunger auf Süßes in der späten Lutealphase zu.', s:'Gorczyca et al. 2016', u:'https://doi.org/10.1007/s00394-015-0931-0' },
+  'crav|Salziges': { t:'lut', dir:'up', ev:'mittel', p:'Heißhunger auf Salziges war in der späten Lutealphase erhöht.', s:'Gorczyca et al. 2016', u:'https://doi.org/10.1007/s00394-015-0931-0' },
+  'crav|Schokolade': { t:'lut', dir:'up', ev:'schwach', p:'Teils in der späten Lutealphase erhöht – aber stark kulturell geprägt; außerhalb der USA deutlich seltener berichtet.', s:'Hormes & Niemiec 2017', u:'https://doi.org/10.1371/journal.pone.0181445' },
+  'crav|Proteinreiches': { t:'lut', dir:'up', ev:'schwach', p:'Die Proteinaufnahme war in der mittleren Lutealphase am höchsten.', s:'Gorczyca et al. 2016', u:'https://doi.org/10.1007/s00394-015-0931-0' },
+  hunger: { t:'lut', dir:'up', ev:'mittel', p:'In der Lutealphase wird im Mittel etwa 170 kcal/Tag mehr gegessen; der Grundumsatz steigt leicht. Mehr Hunger ist teilweise ein echtes Signal.', s:'Tucker et al. 2024', u:'https://doi.org/10.1093/nutrit/nuae093' },
+  emo: { t:'lut', dir:'up', ev:'mittel', p:'Emotionales Essen ist in der mittleren Lutealphase am höchsten und kurz vor dem Eisprung am niedrigsten.', s:'Klump et al. 2013', u:'https://doi.org/10.1037/a0029524' },
+  mood: { t:'pre', dir:'none', ev:'mittel', p:'In der Allgemeinbevölkerung gibt es keinen klaren Beleg für ein typisches prämenstruelles Stimmungstief; Stress, Schlaf und Gesundheit sagen Stimmung oft besser voraus.', s:'Romans et al. 2012', u:'https://pubmed.ncbi.nlm.nih.gov/23036262/' },
+  negComp: { t:'pre', dir:'none', ev:'mittel', p:'Ein deutliches prämenstruelles Muster betrifft eine Minderheit (PMDS: ca. 1,3–9 %). Bei bestehender Depression verstärken sich Beschwerden vor der Periode häufiger (PME).', s:'Kuehner & Nayman 2021', u:'https://doi.org/10.1007/s11920-021-01286-0' },
+  libido: { t:'mid', dir:'up', ev:'mittel', p:'Östradiol steigert das Verlangen (mit etwa 2 Tagen Verzögerung), Progesteron dämpft es – typisch ist ein Hoch um das Eisprungfenster und ein Rückgang in der Lutealphase.', s:'Roney & Simmons 2013', u:'https://doi.org/10.1016/j.yhbeh.2013.02.013' },
+  'haut|Unreinheiten': { t:'pre', dir:'up', ev:'mittel', p:'Fast die Hälfte der Frauen mit Akne berichtet einen Schub vor der Periode.', s:'Stoll et al. 2001', u:'https://doi.org/10.1067/mjd.2001.117382' },
+  sleepq: { t:'mens', dir:'down', ev:'mittel', p:'Die subjektive Schlafqualität ist rund um die Menstruation am niedrigsten; die Schlafstruktur selbst bleibt weitgehend stabil.', s:'Baker & Driver 2007', u:'https://pubmed.ncbi.nlm.nih.gov/?term=Baker+Driver+Circadian+rhythms+sleep+and+the+menstrual+cycle' },
+  conc: { t:'pre', dir:'none', ev:'stark', p:'Eine Meta-Analyse über 102 Studien fand keine robusten Unterschiede der objektiven kognitiven Leistung zwischen den Zyklusphasen. Gefühlte Unterschiede sind trotzdem real und werden klinisch erfasst.', s:'Jang et al. 2025', u:'https://doi.org/10.1371/journal.pone.0318576' },
+  perf: { t:'mens', dir:'down', ev:'schwach', p:'Die Leistung ist in der frühen Follikelphase im Mittel höchstens trivial geringer; die Autoren empfehlen, auf die individuelle Reaktion zu achten.', s:'McNulty et al. 2020', u:'https://doi.org/10.1007/s40279-020-01319-3' },
+  'koerper|Blähbauch': { t:'mens', dir:'up', ev:'mittel', p:'Wassereinlagerung ist im Mittel am ersten Blutungstag am stärksten.', s:'White et al. 2011', u:'https://doi.org/10.1155/2011/138451' },
+  weight: { t:'mens', dir:'up', ev:'mittel', p:'Das Gewicht schwankt durch Wassereinlagerung; die Spitze liegt meist um den ersten Blutungstag – das ist Wasser, kein Fett.', s:'White et al. 2011', u:'https://doi.org/10.1155/2011/138451' },
+};
+for (const p of DEFAULT_PRESETS.pos) REF['pos|'+p] = { t:'mid', dir:'up', ev:'schwach', p:'Erste Studien zeigen mehr positive Stimmung in den Tagen vor dem Eisprung, sonst kaum systematische Schwankungen.', s:'Hromatko & Mikac 2023', u:'https://doi.org/10.3390/brainsci13010105' };
+
+function pearson(xs, ys){
+  const n = xs.length; if (n < 14) return null;
+  const mx = mean(xs), my = mean(ys); let sxy=0,sx=0,sy=0;
+  for (let i=0;i<n;i++){ sxy += (xs[i]-mx)*(ys[i]-my); sx += (xs[i]-mx)**2; sy += (ys[i]-my)**2; }
+  if (!sx || !sy) return null; return sxy/Math.sqrt(sx*sy);
+}
+function dirWord(v, res){ return res==='up' ? 'höher' : 'niedriger'; }
+function tagFor(res, expect){
+  if (res==='open') return '<span class="tag open">noch zu wenig Daten</span>';
+  if (expect==='none') return res==='none' ? '<span class="tag ok">deckt sich</span>' : '<span class="tag no">bei dir anders</span>';
+  return res===expect ? '<span class="tag ok">deckt sich</span>' : '<span class="tag no">bei dir anders</span>';
+}
+
+function renderMuster(){
+  computeCycles();
+  const cycles = cycleTable(); const complete = cycles.filter(c=>c.complete);
+  const entries = Object.values(S.days).filter(d=>d.full).length;
+  document.getElementById('musterSub').textContent = `${complete.length} abgeschlossene Zyklen · ${entries} ausführliche Einträge`;
+  const V = buildVars(); let h = '';
+
+  // Zykluslaengen
+  const lens = CY.lens.slice(-8);
+  if (lens.length){
+    h += `<div class="card"><h3>Zykluslängen</h3>${lenChart(lens)}<div class="small">Grau: Normbereich 24–38 Tage (FIGO). Schwankung kürzester bis längster Zyklus: <b>${Math.max(...lens)-Math.min(...lens)} Tage</b> (Norm ≤ 7–9). Blutungsdauer zuletzt: <b>${mensLenFrom(CY.st[CY.st.length-1])||'–'} Tage</b>.</div></div>`;
+  }
+  if (complete.length < 2 || entries < 14){
+    h += `<div class="card"><div class="empty">Muster werden ab <b>2 abgeschlossenen Zyklen</b> mit regelmäßigen Einträgen berechnet – so empfiehlt es auch das klinische Verfahren (DRSP/C-PASS).<br><br>${entries} von mindestens 14 Einträgen · ${complete.length} von 2 Zyklen</div></div>`;
+  }
+
+  // Muster je Variable
+  const found = [], refs = [];
+  for (const [key,v] of Object.entries(V)){
+    const rg = rangeOf(v, cycles); if (!rg || rg.hi === rg.lo || rg.active < 5) continue;
+    const res = {};
+    for (const t of ['pre','mid','mens','lut']) res[t] = check(v, t, cycles, rg);
+    v.res = res; v.rg = rg;
+    for (const t of ['pre','mid','mens']){ const r = res[t]; if (r.res==='up' || r.res==='down') found.push({key, v, t, r}); }
+    if (REF[key]) refs.push({key, v});
+  }
+  found.sort((a,b) => Math.abs(b.r.rel) - Math.abs(a.r.rel));
+
+  // Stimmung: Klassifikation
+  h += moodCard(V, cycles);
+
+  if (found.length){
+    h += `<div class="card"><h3>Deine Auffälligkeiten</h3><div class="small" style="margin-bottom:6px">Ein Muster zählt, wenn ein Wert in mindestens 2 Zyklen um ≥ 30 % deiner persönlichen Spannweite abweicht (angelehnt an C-PASS).</div>`;
+    for (const f of found.slice(0,8)){
+      const cls = f.t==='mid' ? 'win' : (f.t==='mens' ? 'mens' : '');
+      h += `<div class="info ${cls}"><b>${esc(f.v.label)}: ${CHECKS[f.t].name} ${dirWord(f.v, f.r.res)}</b><p>In ${f.r.res==='up'?f.r.up:f.r.down} von ${f.r.ev} auswertbaren Zyklen, im Mittel ${Math.round(Math.abs(f.r.rel)*100)} % deiner Spannweite.</p></div>`;
+    }
+    h += `</div>`;
+  }
+
+  // Heatmap
+  h += heatCard(V, cycles);
+
+  // Forschung vs. eigene Daten
+  if (refs.length){
+    h += `<div class="card"><h3>Deine Daten und die Forschung</h3>`;
+    for (const {key, v} of refs){
+      const R = REF[key], r = v.res[R.t];
+      const own = r.res==='open' ? 'Noch nicht genug Daten für einen Vergleich.' : (r.res==='none' ? `Bei dir: kein deutliches Muster ${CHECKS[R.t].name}.` : `Bei dir: ${CHECKS[R.t].name} ${dirWord(v, r.res)} (in ${r.res==='up'?r.up:r.down} von ${r.ev} Zyklen).`);
+      h += `<div class="info ${R.t==='mid'?'win':(R.t==='mens'?'mens':'')}"><b>${esc(v.label)}</b>${tagFor(r.res, R.dir)}<span class="tag ev">Evidenz ${R.ev}</span><p>${R.p}</p><p style="color:var(--ink)">${own}</p><a class="src" href="${R.u}" target="_blank" rel="noopener noreferrer">${R.s}</a></div>`;
+    }
+    h += `</div>`;
+  }
+
+  // Zusammenhaenge Stress/Schlaf
+  h += corrCard(V);
+  // Medikamente
+  h += medsCard(V, cycles);
+  // Hypothesen
+  h += hypoCard(V, cycles);
+  // Gewicht
+  if (S.settings.showWeight) h += weightCard(cycles);
+
+  h += `<div class="foot">Takt erkennt Muster, stellt aber keine Diagnosen.<br>Alle Berechnungen laufen auf deinem iPhone.</div>`;
+  document.getElementById('musterBody').innerHTML = h;
+}
+function lenChart(lens){
+  const W=340,H=160,pl=26,pb=24,pt=12, lo=Math.min(18,...lens)-1, hi=Math.max(42,...lens)+1;
+  const y = v => pt + (H-pt-pb)*(1-(v-lo)/(hi-lo));
+  const n = lens.length, bw = (W-pl-6)/n;
+  let s = `<svg width="100%" viewBox="0 0 ${W} ${H}"><rect x="${pl}" y="${y(38)}" width="${W-pl}" height="${y(24)-y(38)}" fill="var(--soft)" rx="6"/>`;
+  [24,38].forEach(v => s += `<text x="${pl-5}" y="${y(v)+4}" font-size="10" text-anchor="end" fill="var(--muted)">${v}</text>`);
+  const starts = CY.st.slice(-n-1, -1);
+  lens.forEach((v,i) => {
+    const x = pl + i*bw + bw*.2, w = bw*.6, out = v<24||v>38;
+    s += `<rect x="${x}" y="${y(v)}" width="${w}" height="${y(lo)-y(v)}" rx="6" fill="${out?'var(--mens)':'var(--lut-ink)'}" opacity=".85"/><text x="${x+w/2}" y="${y(v)-5}" font-size="11" font-weight="600" text-anchor="middle" fill="var(--ink)">${v}</text>`;
+    if (starts[i]) s += `<text x="${x+w/2}" y="${H-7}" font-size="10" text-anchor="middle" fill="var(--muted)">${MON[starts[i].getMonth()].slice(0,3)}</text>`;
+  });
+  return s + `</svg>`;
+}
+function heatCard(V, cycles){
+  const rows = Object.entries(V).filter(([k,v]) => v.rg && v.rg.n >= 10 && v.rg.hi > v.rg.lo && k!=='negComp' && !(k.startsWith('crav|') && v.rg.n < 10));
+  if (!rows.length) return '';
+  rows.sort((a,b) => { const s = v => Math.max(...['pre','mid','mens'].map(t=>Math.abs(v.res[t].rel||0))); return s(b[1]) - s(a[1]); });
+  const top = rows.slice(0,12), len = Math.min(Math.max(CY.L, 24), 35);
+  const cols = `minmax(92px,1.2fr) repeat(${len},1fr)`;
+  let h = `<div class="card"><div class="row between"><h3 style="margin:0">Nach Zyklustag</h3><span class="small">Ø aller Zyklen</span></div><div class="heat" style="grid-template-columns:${cols};margin-top:10px">`;
+  for (const [k,v] of top){
+    h += `<div class="hl" title="${esc(v.label)}">${esc(v.label)}</div>`;
+    for (let cd=1; cd<=len; cd++){
+      const xs = cycles.flatMap(c => { const x = c.days[cd-1]; if (!x || !x.d) return []; const val = v.get(x.d); return val==null||Number.isNaN(val)?[]:[val]; });
+      if (!xs.length){ h += `<div class="hc" style="background:var(--soft);opacity:.5"></div>`; continue; }
+      const t = Math.max(0, Math.min(1, (mean(xs)-v.rg.lo)/(v.rg.hi-v.rg.lo)));
+      const col = v.good ? 'var(--win-ink)' : 'var(--lut-ink)';
+      h += `<div class="hc" style="background:color-mix(in srgb, ${col} ${Math.round(8+t*85)}%, var(--soft))"></div>`;
+    }
+  }
+  h += `<div></div>`; for (let cd=1; cd<=len; cd++) h += `<div style="text-align:center;color:var(--muted)">${cd%5===1?cd:''}</div>`;
+  h += `</div><div class="phasebar" style="grid-template-columns:${cols}"><div style="background:none;font-size:10px;color:var(--muted);height:auto">Phase (Ø)</div>`;
+  for (let cd=1; cd<=len; cd++) h += `<div style="background:${PH[phaseFor(cd, CY.L, 5)].c}"></div>`;
+  return h + `</div><div class="small" style="margin-top:8px">Violett: belastende Werte · Grün: positive Werte. Je kräftiger, desto ausgeprägter.</div></div>`;
+}
+function moodCard(V, cycles){
+  const v = V.negComp; if (!v.rg) return '';
+  const r = v.res.pre; let txt = '', cls = '';
+  // Klaerung nach der Periode (Tage 4-10)
+  const post = cycles.filter(c=>c.complete).flatMap(c => vals(c.days.filter(CHECKS.pre.b), v));
+  const postMean = mean(post);
+  const recent = []; const t = TODAY();
+  for (let i=0;i<28;i++){ const d = S.days[iso(add(t,-i))]; if (d && d.full) recent.push(v.get(d)); }
+  const persistent = recent.length >= 14 && mean(recent) >= 3.5;
+  if (r.res === 'up' && postMean <= 2) { cls='warn'; txt = `Belastende Stimmung steigt bei dir in ${r.up} von ${r.ev} Zyklen vor der Periode deutlich an und klingt danach ab. Dieses Muster ähnelt dem, was bei PMS/PMDS beschrieben wird. Wenn es dich belastet, lohnt sich ein Gespräch mit deiner Frauenärztin – deine Aufzeichnungen sind dafür genau die richtige Grundlage (Bericht unter „Mehr“).`; }
+  else if (r.res === 'up') { cls='warn'; txt = `Belastende Stimmung ist bei dir über den ganzen Zyklus spürbar und verstärkt sich vor der Periode (${r.up} von ${r.ev} Zyklen). Dieses Muster wird als prämenstruelle Verstärkung (PME) beschrieben. Eine ärztliche oder psychotherapeutische Abklärung kann hier sinnvoll sein.`; }
+  else if (persistent) { cls='warn'; txt = `Deine belastende Stimmung war in den letzten vier Wochen an vielen Tagen erhöht – unabhängig von der Zyklusphase. Das hat dann eher nichts mit dem Zyklus zu tun. Sprich gern mit deiner Hausärztin oder einer Psychotherapeutin darüber. Wenn es dir akut schlecht geht: TelefonSeelsorge 0800 111 0 111 (kostenlos, rund um die Uhr).`; }
+  else if (r.res === 'open') return '';
+  else { txt = `Kein deutliches Zyklusmuster bei belastender Stimmung – das entspricht dem, was Studien für die meisten Frauen finden.`; }
+  return `<div class="card"><h3>Stimmung im Zyklus</h3><div class="info ${cls}"><p style="margin:0">${txt}</p></div><div class="small">Keine Diagnose. Grundlage: Vergleich der 7 Tage vor der Periode mit Tag 4–10 (C-PASS-Logik).</div></div>`;
+}
+function corrCard(V){
+  const days = Object.values(S.days);
+  const pair = (a,b) => { const xs=[], ys=[]; for (const d of days){ const x = V[a]&&V[a].get(d), y = V[b]&&V[b].get(d); if (x!=null && y!=null){ xs.push(x); ys.push(y); } } return pearson(xs,ys); };
+  const items = [['stress','mood','Stress','Stimmung'],['sleepq','mood','Schlafqualität','Stimmung'],['sleepq','energy','Schlafqualität','Energie'],['stress','hunger','Stress','Hunger']];
+  const res = items.map(([a,b,la,lb]) => ({la,lb,r:pair(a,b)})).filter(x=>x.r!=null);
+  if (!res.length) return '';
+  const word = r => { const a = Math.abs(r); return a < .2 ? 'kaum' : a < .4 ? 'schwach' : a < .6 ? 'mittel' : 'stark'; };
+  let h = `<div class="card"><h3>Was sonst mitspielt</h3>`;
+  for (const x of res) h += `<div class="sevrow"><span>${x.la} ↔ ${x.lb}</span><span><b>${word(x.r)}</b> <span class="small">(r = ${num(x.r,2)})</span></span></div>`;
+  const pm = V.mood && V.mood.res ? Math.abs(V.mood.res.pre.rel||0) : null;
+  const rs = res.find(x=>x.la==='Stress'&&x.lb==='Stimmung');
+  if (rs && pm!=null && Math.abs(rs.r) >= .3 && pm < .3) h += `<div class="info win"><p style="margin:0">Deine Stimmung hängt deutlich stärker mit Stress zusammen als mit der Zyklusphase.</p></div>`;
+  return h + `<div class="small">Zusammenhang über alle Tage, an denen beide Werte erfasst sind (Pearson-r). Zusammenhang ist keine Ursache.</div></div>`;
+}
+function medsCard(V, cycles){
+  const names = [...new Set(Object.values(S.days).flatMap(d=>d.meds||[]))];
+  if (!names.length) return '';
+  let h = `<div class="card"><h3>Medikamente & Supplemente</h3>`;
+  for (const n of names){
+    const m = S.meds.find(x=>x.name===n) || {kind:'bei Bedarf'};
+    const taken = cycles.flatMap(c => c.days.filter(x => x.d && (x.d.meds||[]).includes(n)));
+    if (m.kind === 'bei Bedarf'){
+      const byPh = {}; taken.forEach(x => { const p = x.phase==='late'?'lut':x.phase; byPh[p] = (byPh[p]||0)+1; });
+      const top = Object.entries(byPh).sort((a,b)=>b[1]-a[1])[0];
+      h += `<div class="sevrow"><span><b>${esc(n)}</b><br><span class="small">bei Bedarf · ${taken.length}× genommen</span></span><span class="small">${top?`meist: ${PH[top[0]]?PH[top[0]].n:top[0]}`:''}</span></div>`;
+    } else {
+      const fullDays = Object.entries(S.days).filter(([k,d]) => d.full);
+      const on = fullDays.filter(([k,d]) => (d.meds||[]).includes(n)).map(x=>x[1]), off = fullDays.filter(([k,d]) => !(d.meds||[]).includes(n)).map(x=>x[1]);
+      let cmp = '';
+      if (on.length >= 7 && off.length >= 7){
+        cmp = ['mood','energy','pain'].map(k => { const a = mean(on.map(V[k].get).filter(x=>x!=null)), b = mean(off.map(V[k].get).filter(x=>x!=null)); return Number.isNaN(a)||Number.isNaN(b) ? '' : `${V[k].label}: ${num(a)} vs. ${num(b)}`; }).filter(Boolean).join('<br>');
+      }
+      h += `<div class="sevrow"><span><b>${esc(n)}</b><br><span class="small">regelmäßig · ${on.length} Tage mit, ${off.length} ohne</span></span><span class="small" style="text-align:right">${cmp || 'Vergleich ab je 7 Tagen'}</span></div>`;
+    }
+  }
+  return h + `<div class="small">Vergleich mit/ohne ist eine Beobachtung, kein Wirksamkeitsnachweis.</div></div>`;
+}
+function hypoCard(V, cycles){
+  let h = `<div class="card"><h3>Deine Vermutungen prüfen</h3><div class="small">Formuliere eine Vermutung – Takt prüft sie nach 3 Zyklen gegen deine Daten.</div>`;
+  for (const hy of S.hypotheses){
+    const v = V[hy.v]; let verdict = '<span class="tag open">läuft</span>', detail = '';
+    if (v && v.rg){
+      const r = check(v, hy.t, cycles, v.rg);
+      if (r.ev >= 3){ const ok = r.res === hy.dir; verdict = ok ? '<span class="tag ok">bestätigt</span>' : '<span class="tag no">nicht bestätigt</span>'; }
+      detail = `${r.ev} von 3 Zyklen auswertbar${r.ev?` · in ${hy.dir==='up'?r.up:r.down} davon zutreffend`:''}`;
+    } else detail = 'noch keine Daten';
+    h += `<div class="sevrow"><span>${esc(v?v.label:hy.v)} ${CHECKS[hy.t].name} ${hy.dir==='up'?'höher':'niedriger'}<br><span class="small">${detail}</span></span><span class="row" style="gap:6px">${verdict}<span class="small" style="cursor:pointer" onclick="delHypo('${hy.id}')">✕</span></span></div>`;
+  }
+  const opts = Object.entries(V).filter(([k])=>k!=='negComp').map(([k,v])=>`<option value="${esc(k)}">${esc(v.label)}</option>`).join('');
+  h += `<div class="addbox on" style="flex-wrap:wrap;margin-top:10px"><select id="hyV">${opts}</select><select id="hyT"><option value="pre">vor der Periode</option><option value="mens">während der Periode</option><option value="mid">um den Eisprung</option><option value="lut">in der Lutealphase</option></select><select id="hyD"><option value="up">höher</option><option value="down">niedriger</option></select><button onclick="addHypo()">Prüfen</button></div>`;
+  return h + `</div>`;
+}
+function addHypo(){ S.hypotheses.push({ id: Date.now().toString(36), v: document.getElementById('hyV').value, t: document.getElementById('hyT').value, dir: document.getElementById('hyD').value, created: iso(TODAY()) }); save(); renderMuster(); toast('Vermutung angelegt'); }
+function delHypo(id){ S.hypotheses = S.hypotheses.filter(h=>h.id!==id); save(); renderMuster(); }
+function weightCard(cycles){
+  const pts = cycles.flatMap(c => c.days.filter(x => x.d && x.d.weight).map(x => ({cd:x.cd, w:x.d.weight})));
+  if (pts.length < 10) return `<div class="card"><h3>Gewicht im Zyklus</h3><div class="small">Ab 10 Einträgen siehst du hier, wie dein Gewicht über den Zyklus schwankt.</div></div>`;
+  const m = mean(pts.map(p=>p.w)), by = {};
+  pts.forEach(p => (by[p.cd] = by[p.cd] || []).push(p.w - m));
+  const len = Math.min(CY.L, 35); let bars = '';
+  for (let cd=1; cd<=len; cd++){ const v = by[cd] ? mean(by[cd]) : null; bars += `<div style="flex:1;display:flex;flex-direction:column;justify-content:center;height:60px"><div style="height:${v==null?0:Math.min(28,Math.abs(v)*20)}px;background:${v>0?'var(--mens)':'var(--win-ink)'};border-radius:2px;${v>0?'margin-bottom:auto;margin-top:auto':''}"></div></div>`; }
+  return `<div class="card"><h3>Gewicht im Zyklus</h3><div style="display:flex;gap:2px;align-items:center">${bars}</div><div class="small">Abweichung von deinem Durchschnitt (${num(m)} kg) je Zyklustag. Rot: darüber, grün: darunter. Spitzen um den ersten Blutungstag sind meist Wasser.</div></div>`;
+}
+
+/* ---------- MEHR ---------- */
+function renderMehr(){
+  const st = S.settings;
+  document.getElementById('settingsList').innerHTML = `
+    <div class="label" style="margin-bottom:4px">Einstellungen</div>
+    <div class="it"><span>Standard-Zykluslänge<br><span class="small">gilt, bis 3 eigene Zyklen vorliegen</span></span><span class="row" style="gap:8px"><button class="iconbtn" onclick="S.settings.defaultLen=Math.max(20,S.settings.defaultLen-1);save();renderMehr()">−</button><b>${st.defaultLen}</b><button class="iconbtn" onclick="S.settings.defaultLen=Math.min(40,S.settings.defaultLen+1);save();renderMehr()">+</button></span></div>
+    <div class="it"><span>Automatisch anpassen<br><span class="small">Ø der letzten 6 Zyklen</span></span><div class="toggle ${st.autoAdapt?'on':''}" onclick="S.settings.autoAdapt=!S.settings.autoAdapt;save();renderMehr()"></div></div>
+    <div class="it"><span>Blind-Modus<br><span class="small">Phase beim Eintragen ausblenden</span></span><div class="toggle ${st.blind?'on':''}" onclick="S.settings.blind=!S.settings.blind;save();renderMehr()"></div></div>
+    <div class="it"><span>Gewicht erfassen</span><div class="toggle ${st.showWeight?'on':''}" onclick="S.settings.showWeight=!S.settings.showWeight;save();renderMehr()"></div></div>
+    <div class="it"><span>Darstellung</span><select onchange="S.settings.theme=this.value;save();applyTheme()" style="border:1px solid var(--line);border-radius:10px;padding:7px;background:var(--soft)"><option value="auto" ${st.theme==='auto'?'selected':''}>Automatisch</option><option value="light" ${st.theme==='light'?'selected':''}>Hell</option><option value="dark" ${st.theme==='dark'?'selected':''}>Dunkel</option></select></div>
+    <div class="it tap" onclick="presetSheet('koerper')"><span>Vorauswahl bearbeiten</span><span>›</span></div>
+    <div class="it tap" onclick="medsSheet()"><span>Medikamente & Supplemente verwalten</span><span>›</span></div>`;
+  document.getElementById('dataList').innerHTML = `
+    <div class="label" style="margin-bottom:4px">Deine Daten</div>
+    <div class="it tap" onclick="exportBackup()"><span>Backup sichern (verschlüsselt)<br><span class="small">${st.lastBackup?'Letztes Backup: '+fmtShort(D(st.lastBackup))+D(st.lastBackup).getFullYear():'Noch kein Backup'}</span></span><span>⇪</span></div>
+    <div class="it tap" onclick="pickFile('backup')"><span>Backup wiederherstellen</span><span>⇩</span></div>
+    <div class="it tap" onclick="healthHelp()"><span>Aus Apple Health importieren</span><span>♥︎</span></div>
+    <div class="it tap" onclick="reportSheet()"><span>Bericht für die Frauenärztin (PDF)<br><span class="small">letzte 3 Zyklen</span></span><span>›</span></div>
+    <div class="it tap" onclick="wipeAll()"><span style="color:var(--mens)">Alle Daten löschen</span><span>›</span></div>`;
+  renderWissen();
+  document.getElementById('versionFoot').innerHTML = `Takt ${VERSION} · ${Object.keys(S.days).length} Tage · ${S.starts.length} Perioden<br>Keine Server, kein Konto, keine Analyse-Tools.`;
+}
+function presetSheet(sec){
+  const tabs = Object.keys(DEFAULT_PRESETS).map(s=>`<span class="chip ${s===sec?'on':''}" data-nochip="1" onclick="presetSheet('${s}')">${SECTION_NAME[s]}</span>`).join('');
+  openSheet(`<h3>Vorauswahl bearbeiten</h3><div class="chips">${tabs}</div><div class="label" style="margin-top:12px">${SECTION_NAME[sec]} – tippe zum Entfernen</div>
+    <div class="chips">${S.settings.presets[sec].map((p,i)=>`<span class="chip" data-nochip="1" onclick="S.settings.presets['${sec}'].splice(${i},1);save();presetSheet('${sec}')">${esc(p)}<span class="x">✕</span></span>`).join('')}</div>
+    <div class="addbox on"><input id="pNew" placeholder="Neuer Eintrag"><button onclick="const v=document.getElementById('pNew').value.trim();if(v&&!S.settings.presets['${sec}'].includes(v)){S.settings.presets['${sec}'].push(v);save();}presetSheet('${sec}')">OK</button></div>
+    <button class="btn ghost" style="margin-top:14px" onclick="S.settings.presets['${sec}']=DEFAULT_PRESETS['${sec}'].slice();save();presetSheet('${sec}')">Auf Standard zurücksetzen</button>`);
+}
+function medsSheet(){
+  openSheet(`<h3>Medikamente & Supplemente</h3><div class="small">Tippe auf die Art, um zwischen „bei Bedarf“ und „regelmäßig“ zu wechseln.</div>
+    ${S.meds.map((m,i)=>`<div class="sevrow"><span>${esc(m.name)}</span><span class="row" style="gap:10px"><span class="chip" data-nochip="1" onclick="S.meds[${i}].kind=S.meds[${i}].kind==='regelmäßig'?'bei Bedarf':'regelmäßig';save();medsSheet()">${m.kind}</span><span style="cursor:pointer" onclick="S.meds.splice(${i},1);save();medsSheet()">✕</span></span></div>`).join('') || '<p class="small">Noch keine Einträge. Lege sie beim Eintragen unter „Medikamente & Supplemente“ an.</p>'}`);
+}
+const SOURCES = [
+  ['Fenster um den Eisprung','Schwangerschaft nur nach Verkehr in den ~6 Tagen bis einschließlich Eisprung.','Wilcox, Weinberg & Baird 1995, NEJM','https://doi.org/10.1056/NEJM199512073332301'],
+  ['Unvorhersehbarer Eisprung','Nur bei ~30 % der Frauen liegt das Fenster ganz zwischen Tag 10 und 17.','Wilcox, Dunson & Baird 2000, BMJ','https://doi.org/10.1136/bmj.321.7271.1259'],
+  ['Zykluslängen in der Realität','612.613 Zyklen: Ø 29,3 Tage, Lutealphase Ø 12,4 Tage (7–17).','Bull et al. 2019, npj Digital Medicine','https://doi.org/10.1038/s41746-019-0152-7'],
+  ['Normwerte','Zyklus 24–38 Tage, Schwankung ≤ 7–9 Tage, Blutung ≤ 8 Tage.','FIGO 2018, Munro et al.','https://doi.org/10.1002/ijgo.12666'],
+  ['Symptom-Skala','Tägliche 6-Punkte-Bewertung, validiert für PMS/PMDS.','Endicott, Nee & Harrison 2006 (DRSP)','https://doi.org/10.1007/s00737-005-0103-y'],
+  ['Auswertungslogik','Standardisierte Auswertung täglicher Bewertungen über ≥ 2 Zyklen.','Eisenlohr-Moul et al. 2017 (C-PASS), Am J Psychiatry','https://doi.org/10.1176/appi.ajp.2016.15121510'],
+  ['Phasen bestimmen','Leitlinie zur Operationalisierung der Zyklusphasen.','Schmalenberger et al. 2021, Psychoneuroendocrinology','https://doi.org/10.1016/j.psyneuen.2020.104895'],
+  ['Stimmung','Kein klarer Beleg für ein prämenstruelles Stimmungstief in der Allgemeinbevölkerung.','Romans et al. 2012, Gender Medicine','https://pubmed.ncbi.nlm.nih.gov/23036262/'],
+  ['Depression & Zyklus','Prämenstruelle Verstärkung (PME) bestehender Depressionen.','Kuehner & Nayman 2021, Curr Psychiatry Rep','https://doi.org/10.1007/s11920-021-01286-0'],
+  ['Positive Stimmung','Mehr positive Stimmung kurz vor dem Eisprung.','Hromatko & Mikac 2023, Brain Sciences','https://doi.org/10.3390/brainsci13010105'],
+  ['Libido','Östradiol steigert, Progesteron dämpft das Verlangen.','Roney & Simmons 2013, Hormones and Behavior','https://doi.org/10.1016/j.yhbeh.2013.02.013'],
+  ['Haut','Prämenstrueller Akneschub bei ~44 %.','Stoll et al. 2001, J Am Acad Dermatol','https://doi.org/10.1067/mjd.2001.117382'],
+  ['Konzentration','Keine robusten Unterschiede der kognitiven Leistung.','Jang et al. 2025, PLOS ONE','https://doi.org/10.1371/journal.pone.0318576'],
+  ['Energieaufnahme','Lutealphase im Mittel +168 kcal/Tag.','Tucker et al. 2024, Nutrition Reviews','https://doi.org/10.1093/nutrit/nuae093'],
+  ['Heißhunger','Mehr Heißhunger auf Süßes, Salziges, Schokolade in der späten Lutealphase.','Gorczyca et al. 2016, Eur J Nutr','https://doi.org/10.1007/s00394-015-0931-0'],
+  ['Emotionales Essen','Am höchsten in der mittleren Lutealphase.','Klump et al. 2013, J Abnorm Psychol','https://doi.org/10.1037/a0029524'],
+  ['Kultur & Erwartung','Zyklusbezogener Schokoladenhunger stark kulturabhängig.','Hormes & Niemiec 2017, PLOS ONE','https://doi.org/10.1371/journal.pone.0181445'],
+  ['Sport','Leistung in der frühen Follikelphase höchstens trivial reduziert.','McNulty et al. 2020, Sports Medicine','https://doi.org/10.1007/s40279-020-01319-3'],
+  ['Wassereinlagerung','Spitze im Mittel am 1. Blutungstag.','White et al. 2011, Obstet Gynecol Int','https://doi.org/10.1155/2011/138451'],
+  ['Schlaf','Subjektive Schlafqualität um die Menstruation am niedrigsten.','Baker & Driver 2007, Sleep Medicine','https://pubmed.ncbi.nlm.nih.gov/?term=Baker+Driver+Circadian+rhythms+sleep+and+the+menstrual+cycle'],
+];
+function renderWissen(){
+  document.getElementById('wissen').innerHTML = SOURCES.map(([t,p,s,u]) => `<div style="padding:10px 0;border-top:1px solid var(--line)"><b style="font-size:14px">${t}</b><div class="small" style="margin:2px 0 4px">${p}</div><a class="src" href="${u}" target="_blank" rel="noopener noreferrer">${s}</a></div>`).join('');
+}
+function wipeAll(){
+  if (!confirm('Wirklich ALLE Daten in Takt löschen? Das lässt sich nur mit einem Backup rückgängig machen.')) return;
+  if (!confirm('Bist du sicher? Letzte Rückfrage.')) return;
+  S = emptyState(); S.settings.onboarded = true; save(); toast('Alle Daten gelöscht'); go('heute');
+}
+
+/* ---------- BACKUP (AES-GCM, PBKDF2) ---------- */
+function b64(u8){ let s=''; for (let i=0;i<u8.length;i+=0x8000) s += String.fromCharCode.apply(null, u8.subarray(i,i+0x8000)); return btoa(s); }
+function unb64(s){ const b = atob(s), u = new Uint8Array(b.length); for (let i=0;i<b.length;i++) u[i] = b.charCodeAt(i); return u; }
+async function deriveKey(pw, salt){
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:310000, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+}
+async function encryptState(pw){
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pw, salt);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, new TextEncoder().encode(JSON.stringify(S))));
+  return JSON.stringify({ takt: 1, enc: 'AES-GCM/PBKDF2-SHA256/310000', created: new Date().toISOString(), salt: b64(salt), iv: b64(iv), data: b64(ct) });
+}
+async function decryptBackup(obj, pw){
+  const key = await deriveKey(pw, unb64(obj.salt));
+  const pt = await crypto.subtle.decrypt({name:'AES-GCM', iv: unb64(obj.iv)}, key, unb64(obj.data));
+  return JSON.parse(new TextDecoder().decode(pt));
+}
+function exportBackup(){
+  openSheet(`<h3>Backup sichern</h3><p class="small">Das Backup wird mit deinem Passwort verschlüsselt. <b>Ohne Passwort lässt es sich nicht wiederherstellen</b> – auch nicht von Apple oder anderen.</p>
+    <input type="password" id="pw1" placeholder="Passwort (mind. 8 Zeichen)" autocomplete="new-password"><input type="password" id="pw2" placeholder="Passwort wiederholen" autocomplete="new-password">
+    <button class="btn" style="margin-top:8px" id="encBtn" onclick="doEncrypt()">Verschlüsseln</button><div id="encOut"></div>`);
+}
+let backupFile = null;
+async function doEncrypt(){
+  const p1 = document.getElementById('pw1').value, p2 = document.getElementById('pw2').value;
+  if (p1.length < 8){ toast('Mindestens 8 Zeichen'); return; }
+  if (p1 !== p2){ toast('Passwörter stimmen nicht überein'); return; }
+  document.getElementById('encBtn').disabled = true; document.getElementById('encBtn').textContent = 'Verschlüssele …';
+  const txt = await encryptState(p1);
+  backupFile = new File([txt], `takt-backup-${iso(TODAY())}.json`, {type:'application/json'});
+  document.getElementById('encBtn').style.display = 'none';
+  document.getElementById('encOut').innerHTML = `<p class="small">Fertig. Tippe auf „Datei sichern“ und wähle dann <b>In Dateien sichern</b> → <b>iCloud Drive</b>.</p><button class="btn" onclick="shareBackup()">Datei sichern</button>`;
+}
+async function shareBackup(){
+  try {
+    if (navigator.canShare && navigator.canShare({files:[backupFile]})){ await navigator.share({files:[backupFile], title:'Takt-Backup'}); }
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(backupFile); a.download = backupFile.name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();}, 2000); }
+    S.settings.lastBackup = iso(TODAY()); save(); closeSheet(); toast('Backup erstellt'); if (current==='mehr') renderMehr(); else renderHeute();
+  } catch(e){ if (e.name !== 'AbortError') toast('Teilen nicht möglich: '+e.message); }
+}
+let pickMode = null;
+function pickFile(mode){ pickMode = mode; const f = document.getElementById('fileInput'); f.value=''; f.accept = mode==='backup' ? '.json,application/json' : '.xml,text/xml,application/xml'; f.click(); }
+document.getElementById('fileInput').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  if (pickMode === 'backup') restoreFrom(file); else importHealth(file);
+});
+async function restoreFrom(file){
+  let obj; try { obj = JSON.parse(await file.text()); } catch(e){ toast('Keine gültige Backup-Datei'); return; }
+  if (!obj || obj.takt !== 1 || !obj.data){ toast('Keine Takt-Backup-Datei'); return; }
+  openSheet(`<h3>Backup wiederherstellen</h3><p class="small">Erstellt am ${new Date(obj.created).toLocaleDateString('de-DE')}. Deine aktuellen Daten werden dabei ersetzt.</p><input type="password" id="rpw" placeholder="Backup-Passwort"><button class="btn" style="margin-top:8px" id="rBtn">Wiederherstellen</button>`);
+  document.getElementById('rBtn').onclick = async () => {
+    try {
+      const st = await decryptBackup(obj, document.getElementById('rpw').value);
+      if (!st || !st.days) throw new Error('leer');
+      S = st; migrate(); save(); applyTheme(); closeSheet(); toast('Backup wiederhergestellt'); go('heute');
+    } catch(err){ toast('Falsches Passwort oder beschädigte Datei'); }
+  };
+}
+
+/* ---------- APPLE HEALTH IMPORT ---------- */
+function healthHelp(){
+  openSheet(`<h3>Aus Apple Health importieren</h3>
+    <ol class="small" style="padding-left:18px;color:var(--ink);line-height:1.6">
+      <li>Öffne <b>Health</b> → tippe oben rechts auf dein <b>Profilbild</b> → ganz unten <b>Alle Gesundheitsdaten exportieren</b>.</li>
+      <li>Wähle <b>In Dateien sichern</b> (z. B. „Auf meinem iPhone“).</li>
+      <li>Tippe in der <b>Dateien</b>-App auf <b>Export.zip</b> – sie wird zu einem Ordner entpackt.</li>
+      <li>Hier auf „Datei auswählen“ tippen und im Ordner <b>apple_health_export</b> die Datei <b>export.xml</b> wählen.</li>
+    </ol>
+    <p class="small">Takt liest nur Periodentage und Zyklus-Symptome. Alles bleibt auf dem iPhone. Lösche Export und Ordner danach wieder – sie sind groß.</p>
+    <button class="btn" onclick="pickFile('health')">Datei auswählen</button><div id="hProg" class="progress"></div>`);
+}
+const HK_SYM = {
+  AbdominalCramps:'koerper|Unterleibsschmerzen', Bloating:'koerper|Blähbauch', BreastPain:'koerper|Brustspannen', Headache:'koerper|Kopfschmerzen',
+  LowerBackPain:'koerper|Rückenschmerzen', Fatigue:'koerper|Müdigkeit', Nausea:'koerper|Übelkeit', Diarrhea:'koerper|Verdauung', Constipation:'koerper|Verdauung',
+  Acne:'haut|Unreinheiten', MoodChanges:'neg|Stimmungsschwankungen', BodyAndMusclePain:'koerper|Gelenk-/Muskelschmerzen'
+};
+const HK_SEV = v => /Severe/.test(v) ? 5 : /Moderate/.test(v) ? 4 : /Mild/.test(v) ? 2 : /NotPresent/.test(v) ? 0 : 3;
+async function importHealth(file){
+  if (!document.getElementById('sheet').classList.contains('on')) healthHelp();
+  const prog = document.getElementById('hProg');
+  try {
+    const res = await parseHealth(file, p => { prog.textContent = `Lese Datei … ${Math.round(p*100)} %`; });
+    if (!res.flowDays.length){ prog.innerHTML = 'In dieser Datei wurden keine Periodentage gefunden. Hast du <b>export.xml</b> gewählt (nicht export_cda.xml)?'; return; }
+    const starts = res.starts;
+    prog.innerHTML = `<div class="card small" style="color:var(--ink)"><b>Gefunden:</b> ${res.flowDays.length} Blutungstage, ${starts.length} Perioden (ab ${fmtShort(D(starts[0]))}${D(starts[0]).getFullYear()})${res.symDays?`, Symptome an ${res.symDays} Tagen`:''}.</div><button class="btn" id="hApply">Übernehmen</button>`;
+    document.getElementById('hApply').onclick = () => {
+      for (const [k,b] of Object.entries(res.flow)){ const d = S.days[k] || {}; if (!d.bleed || d.bleed==='Keine') d.bleed = b; S.days[k] = d; }
+      for (const [k,sy] of Object.entries(res.sym)){ const d = S.days[k] || {}; d.sym = d.sym || {}; for (const [sk,v] of Object.entries(sy)) if (d.sym[sk]==null) d.sym[sk] = v; S.days[k] = d; }
+      S.starts = [...S.starts, ...starts]; normStarts(); S.settings.onboarded = true; save(); closeSheet(); toast(`${starts.length} Perioden übernommen`); go('heute');
+    };
+  } catch(err){ prog.textContent = 'Import fehlgeschlagen: ' + err.message; }
+}
+async function parseHealth(file, onProg){
+  const flow = {}, starts = new Set(), sym = {}, rank = {Schmierblutung:1, Leicht:2, Mittel:3, Stark:4};
+  const re = /<Record type="HKCategoryTypeIdentifier(\w+)"([^>]*?)(\/>|>([\s\S]*?)<\/Record>)/g;
+  const handle = (type, attrs, inner) => {
+    const dm = /startDate="(\d{4}-\d{2}-\d{2})/.exec(attrs); if (!dm) return;
+    const date = dm[1], vm = /value="([^"]*)"/.exec(attrs), val = vm ? vm[1] : '';
+    if (type === 'MenstrualFlow'){
+      if (/None/.test(val)) return;
+      const b = /Light/.test(val) ? 'Leicht' : /Heavy/.test(val) ? 'Stark' : 'Mittel';
+      if (!flow[date] || rank[b] > rank[flow[date]]) flow[date] = b;
+      if (inner && /HKMenstrualCycleStart" value="1"/.test(inner)) starts.add(date);
+    } else if (type === 'IntermenstrualBleeding'){ if (!flow[date]) flow[date] = 'Schmierblutung'; }
+    else if (HK_SYM[type]){ const s = HK_SEV(val); if (!s) return; (sym[date] = sym[date] || {})[HK_SYM[type]] = Math.max(s, (sym[date][HK_SYM[type]]||0)); }
+  };
+  let buf = '', read = 0;
+  if (file.stream && typeof TextDecoderStream !== 'undefined'){
+    const reader = file.stream().getReader(), dec = new TextDecoder();
+    for (;;){
+      const {value, done} = await reader.read();
+      if (value){ read += value.length; buf += dec.decode(value, {stream:true}); }
+      if (done) buf += dec.decode();
+      let last = 0, m; re.lastIndex = 0;
+      while ((m = re.exec(buf))){ handle(m[1], m[2], m[4]); last = re.lastIndex; }
+      if (done) break;
+      let cut = buf.lastIndexOf('<Record'); if (cut < last) cut = last;
+      if (cut <= 0 && buf.length > 2e6) cut = buf.length - 1e5; // Sicherheitsnetz
+      buf = buf.slice(Math.max(cut, last));
+      onProg(read / file.size);
+    }
+  } else {
+    buf = await file.text(); let m; while ((m = re.exec(buf))) handle(m[1], m[2], m[4]);
+  }
+  onProg(1);
+  const flowDays = Object.keys(flow).filter(k => flow[k] !== 'Schmierblutung').sort();
+  // Periodenbeginn: erster Blutungstag nach >= 10 Tagen ohne Blutung (oder Health-Markierung)
+  let prev = null; const st = new Set();
+  for (const k of flowDays){ if (prev === null || diff(D(k), D(prev)) >= 10) st.add(k); prev = k; }
+  for (const s of starts) st.add(s);
+  const out = [...st].sort(); const merged = [];
+  for (const x of out) if (!merged.length || diff(D(x), D(merged[merged.length-1])) >= 10) merged.push(x);
+  return { flow, flowDays, starts: merged, sym, symDays: Object.keys(sym).length };
+}
+
+/* ---------- BERICHT ---------- */
+function reportSheet(){
+  computeCycles();
+  const cycles = cycleTable().filter(c=>c.complete).slice(-3);
+  if (!cycles.length){ toast('Noch kein abgeschlossener Zyklus'); return; }
+  const V = buildVars();
+  const keys = Object.keys(V).filter(k => { const v = V[k]; return cycles.some(c => vals(c.days, v).length >= 3); });
+  let rows = '';
+  for (const k of keys){
+    const v = V[k]; let cells = ''; let any = false;
+    for (const c of cycles){
+      const pre = vals(c.days.filter(CHECKS.pre.a), v), post = vals(c.days.filter(CHECKS.pre.b), v);
+      cells += `<td>${pre.length?num(mean(pre)):'–'}</td><td>${post.length?num(mean(post)):'–'}</td>`; if (pre.length||post.length) any = true;
+    }
+    if (any) rows += `<tr><td>${esc(v.label)}</td>${cells}</tr>`;
+  }
+  const meds = [...new Set(cycles.flatMap(c=>c.days.flatMap(x=>(x.d&&x.d.meds)||[])))];
+  const rep = `<h2>Zyklusbericht (Takt)</h2><p>Erstellt am ${TODAY().toLocaleDateString('de-DE')}. Tägliche Selbstbewertung auf einer Skala von 1 (gar nicht) bis 6 (extrem) nach DRSP-Vorbild; bei Energie, Stimmung, Konzentration, Schlafqualität, Libido: 1 = sehr niedrig/schlecht, 6 = sehr hoch/gut. Ja/Nein-Merkmale als Anteil (0–1).</p>
+    <table><tr><th>Zyklus</th><th>Beginn</th><th>Länge</th><th>Blutungstage</th></tr>${cycles.map((c,i)=>`<tr><td>${i+1}</td><td>${c.start.toLocaleDateString('de-DE')}</td><td>${c.len} Tage</td><td>${mensLenFrom(c.start)||'–'}</td></tr>`).join('')}</table>
+    <p><b>Mittelwerte:</b> prämenstruell (7 Tage vor Periodenbeginn) vs. postmenstruell (Zyklustag 4–10)</p>
+    <table><tr><th>Merkmal</th>${cycles.map((c,i)=>`<th>Z${i+1} prä</th><th>Z${i+1} post</th>`).join('')}</tr>${rows}</table>
+    ${meds.length?`<p><b>Medikamente/Supplemente im Zeitraum:</b> ${meds.map(esc).join(', ')}</p>`:''}
+    <p style="font-size:10px">Selbst erfasste Daten, keine Diagnose. Auswertungslogik angelehnt an C-PASS (Eisenlohr-Moul et al. 2017).</p>`;
+  document.getElementById('report').innerHTML = rep;
+  openSheet(`<h3>Bericht für die Frauenärztin</h3><p class="small">Enthält die letzten ${cycles.length} abgeschlossenen Zyklen. Im nächsten Schritt öffnet sich das Drucken-Menü: Mit zwei Fingern auf die Vorschau aufziehen → Teilen → <b>In Dateien sichern</b> ergibt ein PDF.</p><button class="btn" onclick="closeSheet();setTimeout(()=>window.print(),350)">Bericht erstellen</button>`);
+}
+
+/* ---------- DEMO-DATEN (nur unter #demo) ---------- */
+function seedDemo(){
+  let seed = 7; const rnd = () => (seed = (seed*16807) % 2147483647) / 2147483647;
+  const t = TODAY(); let s = add(t, -176); const lens = [26,27,25,26,28,26,27];
+  S.meds = [{name:'Ibuprofen', kind:'bei Bedarf'},{name:'B12', kind:'regelmäßig'}];
+  for (const L of lens){
+    if (s > t) break;
+    S.starts.push(iso(s));
+    for (let j=0;j<L;j++){
+      const d = add(s,j); if (d > t) break; const cd = j+1, back = j-L;
+      if (rnd() < .15) continue;
+      const pre = back >= -6, mid = cd>=L-17 && cd<=L-12;
+      const day = { full:true, sym:{} };
+      day.bleed = cd===1?'Mittel':cd===2?'Stark':cd===3?'Mittel':cd<=5?'Leicht':'Keine'; if (cd<=2) day.chg = cd===2?6:4;
+      day.pain = cd<=2 ? 4+Math.round(rnd()) : 1+Math.round(rnd());
+      if (cd<=2) day.sym['koerper|Unterleibsschmerzen'] = 4;
+      if (pre) day.sym['koerper|Brustspannen'] = 2+Math.round(rnd()*2);
+      if (pre || cd<=2) day.sym['koerper|Blähbauch'] = 2+Math.round(rnd()*2);
+      if (pre && rnd()<.6) day.sym['haut|Unreinheiten'] = 3;
+      const stress = 1+Math.floor(rnd()*5); day.stress = {lvl:stress, src: stress>3?['Arbeit']:[]};
+      day.mood = Math.max(1, Math.min(6, 5 - Math.round((stress-2)*.6) + (mid?1:0) - (rnd()<.2?1:0)));
+      if (stress>=4) day.sym['neg|Gereizt/wütend'] = stress-1;
+      if (mid) day.sym['pos|Gesellig'] = 4;
+      day.energy = Math.max(1, Math.min(6, (mid?5:4) - (cd<=2?2:0) - (pre?1:0) + (rnd()<.3?1:0)));
+      day.conc = 3 + Math.round(rnd()*2); day.libido = mid ? 5 : pre ? 2 : 3;
+      day.hunger = { lvl: pre ? 5 : 3, sat: 4, crav: pre && rnd()<.7 ? ['Süßes'] : (rnd()<.1?['Salziges']:[]), emo: pre && stress>3 };
+      day.sleep = { h: 6.5 + Math.round(rnd()*4)/2, q: cd<=2 ? 3 : 4 + (rnd()<.3?1:0) };
+      day.meds = ['B12']; if (cd<=2 && rnd()<.7) day.meds.push('Ibuprofen');
+      if (rnd()<.3) day.sport = {t:['Laufen'], min:40, perf: cd<=2?3:5};
+      S.days[iso(d)] = day;
+    }
+    s = add(s, L);
+  }
+  S.hypotheses = [{id:'h1', v:'crav|Süßes', t:'pre', dir:'up', created: iso(t)}];
+  S.settings.onboarded = true; S.settings.lastBackup = iso(add(t,-3)); save();
+}
+
+/* ---------- Start ---------- */
+load();
+if (KEY === 'takt.demo' && !S.starts.length) seedDemo();
+applyTheme();
+entryDate = TODAY();
+renderHeute();
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(()=>{});
+document.addEventListener('visibilitychange', () => { if (!document.hidden && current==='heute') renderHeute(); });
+</script>
+</body>
+</html>
