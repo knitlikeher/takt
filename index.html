@@ -265,7 +265,7 @@ nav.tabs .plus{width:54px;height:54px;border-radius:50%;background:var(--accent)
 /* =========================================================
    Takt – Zyklus-Tracking. Alle Daten bleiben lokal.
    ========================================================= */
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const DATA_VERSION = 1;
 const KEY = location.hash === '#demo' ? 'takt.demo' : 'takt.v1';
 const DAY = 864e5;
@@ -501,19 +501,25 @@ function renderHints(){
 }
 function renderQuick(){
   const d = S.days[iso(TODAY())] || {};
-  document.getElementById('quickState').textContent = d.full ? 'heute ausführlich erfasst ✓' : (d.mood||d.energy||d.pain ? 'gespeichert ✓' : '');
+  const short = {Keine:'keine', Schmierblutung:'Schmier', Leicht:'leicht', Mittel:'mittel', Stark:'stark'};
+  document.getElementById('quickState').textContent = d.full ? 'heute ausführlich erfasst ✓' : (d.mood||d.energy||d.bleed ? 'gespeichert ✓' : '');
   document.getElementById('quick').innerHTML =
-    `<div class="sevrow" style="border-top:0"><span>Energie</span>${scaleHTML('q-energy', d.energy, 'sehr niedrig','sehr hoch')}</div>
-     <div class="sevrow"><span>Stimmung</span>${scaleHTML('q-mood', d.mood, 'sehr schlecht','sehr gut')}</div>
-     <div class="sevrow"><span>Schmerz</span>${scaleHTML('q-pain', d.pain, 'keiner','extrem')}</div>`;
+    `<div class="sevrow" style="border-top:0;flex-wrap:wrap"><span>Blutung</span><div class="chips single" data-sec="qbleed" style="margin:0;gap:6px">${BLEED.map(b=>`<span class="chip ${d.bleed===b?'on':''}" data-v="${b}" style="padding:7px 10px;font-size:13px">${short[b]}</span>`).join('')}</div></div>
+     <div class="sevrow"><span>Energie</span>${scaleHTML('q-energy', d.energy, 'sehr niedrig','sehr hoch')}</div>
+     <div class="sevrow"><span>Stimmung</span>${scaleHTML('q-mood', d.mood, 'sehr schlecht','sehr gut')}</div>`;
 }
 function saveQuick(){
   const root = document.getElementById('quick');
   const k = iso(TODAY()); const d = S.days[k] || {};
-  const e = readScale(root,'q-energy'), m = readScale(root,'q-mood'), p = readScale(root,'q-pain');
-  if (e==null && m==null && p==null){ toast('Wähle mindestens einen Wert'); return; }
-  if (e!=null) d.energy = e; if (m!=null) d.mood = m; if (p!=null) d.pain = p;
-  S.days[k] = d; save(); renderQuick(); toast('Gespeichert');
+  const e = readScale(root,'q-energy'), m = readScale(root,'q-mood');
+  const bc = root.querySelector('.chips[data-sec="qbleed"] .chip.on'), b = bc ? bc.dataset.v : null;
+  if (e==null && m==null && !b){ toast('Wähle mindestens einen Wert'); return; }
+  const wasBleed = isBleed(d.bleed);
+  if (e!=null) d.energy = e; if (m!=null) d.mood = m; if (b) d.bleed = b;
+  S.days[k] = d;
+  let msg = 'Gespeichert';
+  if (isBleed(d.bleed) && !wasBleed) msg = autoStart(k) || msg;
+  save(); toast(msg); renderHeute();
 }
 
 /* ---------- Onboarding ---------- */
