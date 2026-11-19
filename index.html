@@ -265,7 +265,7 @@ nav.tabs .plus{width:54px;height:54px;border-radius:50%;background:var(--accent)
 /* =========================================================
    Takt – Zyklus-Tracking. Alle Daten bleiben lokal.
    ========================================================= */
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 const DATA_VERSION = 1;
 const KEY = location.hash === '#demo' ? 'takt.demo' : 'takt.v1';
 const DAY = 864e5;
@@ -286,7 +286,7 @@ const num = (x,d=1) => (Math.round(x*10**d)/10**d).toString().replace('.',',');
 
 /* ---------- Kataloge ---------- */
 const DEFAULT_PRESETS = {
-  blut:[],
+  blut:['Gerinnsel'],
   koerper:['Unterleibsschmerzen','Brustspannen','Blähbauch','Kopfschmerzen','Rückenschmerzen','Gelenk-/Muskelschmerzen','Müdigkeit','Übelkeit','Verdauung'],
   pos:['Ausgeglichen','Fröhlich','Gelassen','Motiviert','Gesellig','Fokussiert','Selbstbewusst','Kreativ'],
   neg:['Niedergeschlagen','Hoffnungslos','Wertlos/schuldig','Ängstlich/angespannt','Stimmungsschwankungen','Empfindlich','Gereizt/wütend','Konflikte','Weniger Interesse','Antriebslos','Überfordert','Außer Kontrolle'],
@@ -319,6 +319,7 @@ function migrate(){
   for (const k in DEFAULT_PRESETS) if (!Array.isArray(S.settings.presets[k])) S.settings.presets[k] = DEFAULT_PRESETS[k].slice();
   S.starts = Array.isArray(S.starts) ? S.starts : [];
   S.days = S.days || {}; S.meds = S.meds || []; S.hypotheses = S.hypotheses || [];
+  if (!S.settings.m140){ if (!S.settings.presets.blut.includes('Gerinnsel')) S.settings.presets.blut.unshift('Gerinnsel'); S.settings.m140 = true; }
   S.version = DATA_VERSION;
 }
 function save(){
@@ -501,10 +502,12 @@ function renderHints(){
 }
 function renderQuick(){
   const d = S.days[iso(TODAY())] || {};
-  const short = {Keine:'keine', Schmierblutung:'Schmier', Leicht:'leicht', Mittel:'mittel', Stark:'stark'};
+  const short = {Keine:'keine', Leicht:'leicht', Mittel:'mittel', Stark:'stark'};
+  const QB = ['Keine','Leicht','Mittel','Stark'];
+  const clot = (d.btags||[]).includes('Gerinnsel');
   document.getElementById('quickState').textContent = d.full ? 'heute ausführlich erfasst ✓' : (d.mood||d.energy||d.bleed ? 'gespeichert ✓' : '');
   document.getElementById('quick').innerHTML =
-    `<div class="sevrow" style="border-top:0;flex-wrap:wrap"><span>Blutung</span><div class="chips single" data-sec="qbleed" style="margin:0;gap:6px">${BLEED.map(b=>`<span class="chip ${d.bleed===b?'on':''}" data-v="${b}" style="padding:7px 10px;font-size:13px">${short[b]}</span>`).join('')}</div></div>
+    `<div class="sevrow" style="border-top:0;flex-wrap:wrap"><span>Blutung</span><div class="chips single" data-sec="qbleed" style="margin:0;gap:6px">${QB.map(b=>`<span class="chip ${d.bleed===b?'on':''}" data-v="${b}" style="padding:7px 10px;font-size:13px">${short[b]}</span>`).join('')}</div><div class="chips" data-sec="qclot" style="margin:6px 0 0;gap:6px;width:100%;justify-content:flex-end"><span class="chip ${clot?'on':''}" style="padding:7px 10px;font-size:13px">Gerinnsel</span></div></div>
      <div class="sevrow"><span>Energie</span>${scaleHTML('q-energy', d.energy, 'sehr niedrig','sehr hoch')}</div>
      <div class="sevrow"><span>Stimmung</span>${scaleHTML('q-mood', d.mood, 'sehr schlecht','sehr gut')}</div>`;
 }
@@ -513,9 +516,11 @@ function saveQuick(){
   const k = iso(TODAY()); const d = S.days[k] || {};
   const e = readScale(root,'q-energy'), m = readScale(root,'q-mood');
   const bc = root.querySelector('.chips[data-sec="qbleed"] .chip.on'), b = bc ? bc.dataset.v : null;
-  if (e==null && m==null && !b){ toast('Wähle mindestens einen Wert'); return; }
+  if (e==null && m==null && !b && !root.querySelector('.chips[data-sec="qclot"] .chip.on')){ toast('Wähle mindestens einen Wert'); return; }
+  const clot = !!root.querySelector('.chips[data-sec="qclot"] .chip.on');
   const wasBleed = isBleed(d.bleed);
   if (e!=null) d.energy = e; if (m!=null) d.mood = m; if (b) d.bleed = b;
+  d.btags = (d.btags||[]).filter(x=>x!=='Gerinnsel'); if (clot) d.btags.push('Gerinnsel');
   S.days[k] = d;
   let msg = 'Gespeichert';
   if (isBleed(d.bleed) && !wasBleed) msg = autoStart(k) || msg;
@@ -783,6 +788,8 @@ function buildVars(){
   V.emo = { label:'Emotionales Essen', group:'Essen', good:false, get: d => d.full ? ((d.hunger&&d.hunger.emo)?1:0) : null };
   for (const c of new Set([...S.settings.presets.crav, ...Object.values(S.days).flatMap(d=>(d.hunger&&d.hunger.crav)||[])]))
     V['crav|'+c] = { label:'Heißhunger: '+c, group:'Essen', good:false, get: d => d.full ? (((d.hunger&&d.hunger.crav)||[]).includes(c)?1:0) : null };
+  for (const c of new Set([...S.settings.presets.blut, ...Object.values(S.days).flatMap(d=>d.btags||[])]))
+    V['blut|'+c] = { label: c, group:'Blutung', good:false, get: d => (d.full || (d.btags||[]).length) ? ((d.btags||[]).includes(c)?1:0) : null };
   for (const c of new Set([...S.settings.presets.intim, ...Object.values(S.days).flatMap(d=>d.intim||[])]))
     V['intim|'+c] = { label: c, group:'Intimität', good:true, neutral:true, private:true, get: d => d.full ? ((d.intim||[]).includes(c)?1:0) : null };
   V.sleepq = { label:'Schlafqualität', group:'Schlaf', good:true, get: d => (d.sleep&&d.sleep.q) || null };
@@ -1270,7 +1277,7 @@ function reportSheet(){
   }
   const meds = [...new Set(cycles.flatMap(c=>c.days.flatMap(x=>(x.d&&x.d.meds)||[])))];
   const rep = `<h2>Zyklusbericht (Takt)</h2><p>Erstellt am ${TODAY().toLocaleDateString('de-DE')}. Tägliche Selbstbewertung auf einer Skala von 1 (gar nicht) bis 6 (extrem) nach DRSP-Vorbild; bei Energie, Stimmung, Konzentration, Schlafqualität, Libido: 1 = sehr niedrig/schlecht, 6 = sehr hoch/gut. Ja/Nein-Merkmale als Anteil (0–1).</p>
-    <table><tr><th>Zyklus</th><th>Beginn</th><th>Länge</th><th>Blutungstage</th></tr>${cycles.map((c,i)=>`<tr><td>${i+1}</td><td>${c.start.toLocaleDateString('de-DE')}</td><td>${c.len} Tage</td><td>${mensLenFrom(c.start)||'–'}</td></tr>`).join('')}</table>
+    <table><tr><th>Zyklus</th><th>Beginn</th><th>Länge</th><th>Blutungstage</th><th>Tage mit Gerinnseln</th><th>Zwischenblutung (Tage)</th></tr>${cycles.map((c,i)=>`<tr><td>${i+1}</td><td>${c.start.toLocaleDateString('de-DE')}</td><td>${c.len} Tage</td><td>${mensLenFrom(c.start)||'–'}</td><td>${c.days.filter(x=>x.d&&(x.d.btags||[]).includes('Gerinnsel')).length}</td><td>${c.days.filter(x=>x.d&&x.cd>(mensLenFrom(c.start)||5)&&(x.d.bleed==='Schmierblutung'||isBleed(x.d.bleed))).length}</td></tr>`).join('')}</table>
     <p><b>Mittelwerte:</b> prämenstruell (7 Tage vor Periodenbeginn) vs. postmenstruell (Zyklustag 4–10)</p>
     <table><tr><th>Merkmal</th>${cycles.map((c,i)=>`<th>Z${i+1} prä</th><th>Z${i+1} post</th>`).join('')}</tr>${rows}</table>
     ${meds.length?`<p><b>Medikamente/Supplemente im Zeitraum:</b> ${meds.map(esc).join(', ')}</p>`:''}
