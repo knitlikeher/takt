@@ -265,7 +265,7 @@ nav.tabs .plus{width:54px;height:54px;border-radius:50%;background:var(--accent)
 /* =========================================================
    Takt – Zyklus-Tracking. Alle Daten bleiben lokal.
    ========================================================= */
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const DATA_VERSION = 1;
 const KEY = location.hash === '#demo' ? 'takt.demo' : 'takt.v1';
 const DAY = 864e5;
@@ -292,12 +292,13 @@ const DEFAULT_PRESETS = {
   neg:['Niedergeschlagen','Hoffnungslos','Wertlos/schuldig','Ängstlich/angespannt','Stimmungsschwankungen','Empfindlich','Gereizt/wütend','Konflikte','Weniger Interesse','Antriebslos','Überfordert','Außer Kontrolle'],
   haut:['Unreinheiten','Fettige Haut','Trockene Haut','Rötungen/empfindlich'],
   crav:['Süßes','Schokolade','Salziges','Fettiges','Kohlenhydrate','Proteinreiches'],
+  intim:['Sex','Selbstliebe'],
   sport:['Laufen','Krafttraining','Yoga','Radfahren','Schwimmen','Spazieren'],
   stress:['Arbeit','Privat','Gesundheit','Termine','Schlafmangel'],
   kontext:['Erkältet','Fieber','Alkohol','Reise/Zeitzone','Arzttermin','Besonderer Tag']
 };
 const SEV_SECTIONS = ['koerper','pos','neg','haut'];
-const SECTION_NAME = {blut:'Blutung',koerper:'Körper',pos:'Stimmung – positiv',neg:'Stimmung – belastend',haut:'Haut',crav:'Heißhunger',sport:'Sport',stress:'Stress-Quellen',kontext:'Kontext'};
+const SECTION_NAME = {blut:'Blutung',koerper:'Körper',pos:'Stimmung – positiv',neg:'Stimmung – belastend',haut:'Haut',crav:'Heißhunger',intim:'Intimität',sport:'Sport',stress:'Stress-Quellen',kontext:'Kontext'};
 const BLEED = ['Keine','Schmierblutung','Leicht','Mittel','Stark'];
 const isBleed = b => b==='Leicht'||b==='Mittel'||b==='Stark';
 
@@ -575,6 +576,7 @@ function daySummary(d){
   const sy = Object.entries(d.sym||{}).map(([k,v])=>`${esc(k.split('|')[1])} (${v})`);
   if (sy.length) parts.push(`<b>Symptome:</b> ${sy.join(', ')}`);
   if (d.hunger && (d.hunger.crav||[]).length) parts.push(`<b>Heißhunger:</b> ${d.hunger.crav.map(esc).join(', ')}`);
+  if ((d.intim||[]).length) parts.push(`<b>Intimität:</b> ${d.intim.map(esc).join(', ')}`);
   if (d.sleep && d.sleep.h) parts.push(`<b>Schlaf:</b> ${num(d.sleep.h)} h${d.sleep.q?` · Qualität ${d.sleep.q}`:''}`);
   if (d.stress && d.stress.lvl) parts.push(`<b>Stress:</b> ${d.stress.lvl}`);
   if ((d.meds||[]).length) parts.push(`<b>Medikamente:</b> ${d.meds.map(esc).join(', ')}`);
@@ -614,6 +616,7 @@ function freeCounts(sec){
     else if (sec==='stress') items = (d.stress&&d.stress.src)||[];
     else if (sec==='kontext') items = d.ctx||[];
     else if (sec==='blut') items = d.btags||[];
+    else if (sec==='intim') items = d.intim||[];
     for (const it of items) if (!preset.has(it)) cnt[it] = (cnt[it]||0)+1;
   }
   return cnt;
@@ -687,7 +690,8 @@ function renderEntry(){
       <div class="sub-h">Heißhunger auf</div>${suggestHTML('crav')}${chipGroup('crav', H.crav||[])}
       <div class="field"><span>Emotional gegessen<br><span class="small">aus Stress, Frust, Langeweile</span></span><div class="toggle ${H.emo?'on':''}" id="f-emo" onclick="this.classList.toggle('on')"></div></div>
       <div class="sevrow"><span>Sättigung nach dem Essen</span>${scaleHTML('sat', H.sat, 'kaum satt','sehr satt')}</div>`],
-    ['libido','Libido','♡','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Lust</span>${scaleHTML('libido', d.libido, 'keine','sehr stark')}</div>`],
+    ['libido','Libido','♡','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Lust</span>${scaleHTML('libido', d.libido, 'keine','sehr stark')}</div>
+      <div class="sub-h">Heute</div>${suggestHTML('intim')}${chipGroup('intim', d.intim||[])}`],
     ['haut','Haut','◌','var(--win)', `${suggestHTML('haut')}${chipGroup('haut', symOf('haut'), {sev:1})}<div id="sev-haut"></div>`],
     ['schlaf','Schlaf','☾','var(--lut)', `<div class="field" style="border-top:0"><span>Schlafdauer (h)</span><input type="number" id="f-sleeph" inputmode="decimal" step="0.5" min="0" max="16" value="${SL.h??''}"></div><div class="sevrow"><span>Qualität</span>${scaleHTML('sleepq', SL.q, 'sehr schlecht','sehr gut')}</div>`],
     ['stress','Stress','≋','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Stress</span>${scaleHTML('stress', ST.lvl, 'keiner','extrem')}</div>${suggestHTML('stress')}${chipGroup('stress', ST.src||[])}`],
@@ -699,7 +703,7 @@ function renderEntry(){
   document.getElementById('sections').innerHTML = secs.map(([id,t,ic,bg,b],i) =>
     `<details class="sec" ${i<3?'open':''}><summary><span class="row"><span class="ico" style="background:${bg}">${ic}</span>${t}</span><span class="cnt" id="cnt-${id}"></span></summary><div class="body">${b}</div></details>`).join('');
   SEV_SECTIONS.forEach(updateSevRows);
-  ['blut','koerper','pos','neg','haut','crav','stress','sport','kontext','meds'].forEach(updateCount);
+  ['blut','koerper','pos','neg','haut','crav','intim','stress','sport','kontext','meds'].forEach(updateCount);
 }
 function collectEntry(keepDraft){
   const root = document.getElementById('sections'), k = iso(entryDate);
@@ -723,6 +727,7 @@ function collectEntry(keepDraft){
   d.meds = chipsOn('meds');
   const w = root.querySelector('#f-weight'); if (w && w.value!=='') d.weight = +w.value; else if (prev.weight && !S.settings.showWeight) d.weight = prev.weight;
   d.ctx = chipsOn('kontext');
+  d.intim = chipsOn('intim');
   const note = root.querySelector('#f-note').value.trim(); if (note) d.note = note;
   d.full = true;
   if (keepDraft){ d._k = k; draft = d; }
@@ -772,6 +777,8 @@ function buildVars(){
   V.emo = { label:'Emotionales Essen', group:'Essen', good:false, get: d => d.full ? ((d.hunger&&d.hunger.emo)?1:0) : null };
   for (const c of new Set([...S.settings.presets.crav, ...Object.values(S.days).flatMap(d=>(d.hunger&&d.hunger.crav)||[])]))
     V['crav|'+c] = { label:'Heißhunger: '+c, group:'Essen', good:false, get: d => d.full ? (((d.hunger&&d.hunger.crav)||[]).includes(c)?1:0) : null };
+  for (const c of new Set([...S.settings.presets.intim, ...Object.values(S.days).flatMap(d=>d.intim||[])]))
+    V['intim|'+c] = { label: c, group:'Intimität', good:true, neutral:true, private:true, get: d => d.full ? ((d.intim||[]).includes(c)?1:0) : null };
   V.sleepq = { label:'Schlafqualität', group:'Schlaf', good:true, get: d => (d.sleep&&d.sleep.q) || null };
   V.sleeph = { label:'Schlafdauer', group:'Schlaf', good:true, neutral:true, get: d => (d.sleep&&d.sleep.h) || null };
   V.stress = { label:'Stress', group:'Stress', good:false, get: d => (d.stress&&d.stress.lvl) || null };
@@ -834,6 +841,7 @@ const REF = {
   mood: { t:'pre', dir:'none', ev:'mittel', p:'In der Allgemeinbevölkerung gibt es keinen klaren Beleg für ein typisches prämenstruelles Stimmungstief; Stress, Schlaf und Gesundheit sagen Stimmung oft besser voraus.', s:'Romans et al. 2012', u:'https://pubmed.ncbi.nlm.nih.gov/23036262/' },
   negComp: { t:'pre', dir:'none', ev:'mittel', p:'Ein deutliches prämenstruelles Muster betrifft eine Minderheit (PMDS: ca. 1,3–9 %). Bei bestehender Depression verstärken sich Beschwerden vor der Periode häufiger (PME).', s:'Kuehner & Nayman 2021', u:'https://doi.org/10.1007/s11920-021-01286-0' },
   libido: { t:'mid', dir:'up', ev:'mittel', p:'Östradiol steigert das Verlangen (mit etwa 2 Tagen Verzögerung), Progesteron dämpft es – typisch ist ein Hoch um das Eisprungfenster und ein Rückgang in der Lutealphase.', s:'Roney & Simmons 2013', u:'https://doi.org/10.1016/j.yhbeh.2013.02.013' },
+  'intim|Sex': { t:'mid', dir:'up', ev:'mittel', p:'In einer prospektiven Studie war Geschlechtsverkehr in den sechs fruchtbaren Tagen häufiger als an den übrigen Tagen ohne Blutung (+24 %).', s:'Wilcox et al. 2004, Obstet Gynecol', u:'https://pubmed.ncbi.nlm.nih.gov/?term=Wilcox+2004+frequency+of+intercourse+around+ovulation' },
   'haut|Unreinheiten': { t:'pre', dir:'up', ev:'mittel', p:'Fast die Hälfte der Frauen mit Akne berichtet einen Schub vor der Periode.', s:'Stoll et al. 2001', u:'https://doi.org/10.1067/mjd.2001.117382' },
   sleepq: { t:'mens', dir:'down', ev:'mittel', p:'Die subjektive Schlafqualität ist rund um die Menstruation am niedrigsten; die Schlafstruktur selbst bleibt weitgehend stabil.', s:'Baker & Driver 2007', u:'https://pubmed.ncbi.nlm.nih.gov/?term=Baker+Driver+Circadian+rhythms+sleep+and+the+menstrual+cycle' },
   conc: { t:'pre', dir:'none', ev:'stark', p:'Eine Meta-Analyse über 102 Studien fand keine robusten Unterschiede der objektiven kognitiven Leistung zwischen den Zyklusphasen. Gefühlte Unterschiede sind trotzdem real und werden klinisch erfasst.', s:'Jang et al. 2025', u:'https://doi.org/10.1371/journal.pone.0318576' },
@@ -1244,7 +1252,7 @@ function reportSheet(){
   const cycles = cycleTable().filter(c=>c.complete).slice(-3);
   if (!cycles.length){ toast('Noch kein abgeschlossener Zyklus'); return; }
   const V = buildVars();
-  const keys = Object.keys(V).filter(k => { const v = V[k]; return cycles.some(c => vals(c.days, v).length >= 3); });
+  const keys = Object.keys(V).filter(k => { const v = V[k]; return !v.private && cycles.some(c => vals(c.days, v).length >= 3); });
   let rows = '';
   for (const k of keys){
     const v = V[k]; let cells = ''; let any = false;

@@ -1,7 +1,7 @@
 // Takt Service Worker: macht die App offline nutzbar.
 // Holt immer zuerst die neueste Version aus dem Netz (Updates kommen automatisch),
 // faellt ohne Netz auf die gespeicherte Kopie zurueck. Speichert KEINE Nutzerdaten.
-const CACHE = 'takt-app-v2';
+const CACHE = 'takt-app-v3';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-180.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
