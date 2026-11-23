@@ -224,7 +224,7 @@ nav.tabs .plus{width:54px;height:54px;border-radius:50%;background:var(--accent)
   </div>
   <div id="sections"></div>
   <button class="btn" onclick="saveEntry()">Speichern</button>
-  <div class="foot">Nicht ausgewählte Symptome zählen als „gar nicht“.<br>Freie Einträge, die öfter vorkommen, schlägt Takt als Standard vor.</div>
+  <div class="foot">Ausgewählt = an diesem Tag spürbar. Nicht Ausgewähltes zählt als „nicht vorhanden“.<br>Freie Einträge, die öfter vorkommen, schlägt Takt als Standard vor.</div>
 </section>
 
 <!-- MUSTER -->
@@ -265,7 +265,7 @@ nav.tabs .plus{width:54px;height:54px;border-radius:50%;background:var(--accent)
 /* =========================================================
    Takt – Zyklus-Tracking. Alle Daten bleiben lokal.
    ========================================================= */
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
 const DATA_VERSION = 1;
 const KEY = location.hash === '#demo' ? 'takt.demo' : 'takt.v1';
 const DAY = 864e5;
@@ -584,7 +584,7 @@ function daySummary(d){
   if (d.bleed && d.bleed!=='Keine') parts.push(`<b>Blutung:</b> ${esc(d.bleed)}${(d.btags||[]).length?` · ${d.btags.map(esc).join(', ')}`:''}`);
   const q = []; if (d.mood) q.push(`Stimmung ${d.mood}`); if (d.energy) q.push(`Energie ${d.energy}`); if (d.pain) q.push(`Schmerz ${d.pain}`);
   if (q.length) parts.push(q.join(' · '));
-  const sy = Object.entries(d.sym||{}).map(([k,v])=>`${esc(k.split('|')[1])} (${v})`);
+  const sy = Object.keys(d.sym||{}).map(k=>esc(k.split('|')[1]));
   if (sy.length) parts.push(`<b>Symptome:</b> ${sy.join(', ')}`);
   if (d.hunger && (d.hunger.crav||[]).length) parts.push(`<b>Heißhunger:</b> ${d.hunger.crav.map(esc).join(', ')}`);
   if ((d.intim||[]).length) parts.push(`<b>Intimität:</b> ${d.intim.map(esc).join(', ')}`);
@@ -692,10 +692,10 @@ function renderEntry(){
   const secs = [
     ['blut','Blutung','●','var(--mens-soft)', `<div class="chips single" data-sec="bleed">${BLEED.map(b=>`<span class="chip ${ (d.bleed||'Keine')===b?'on':''}">${b}</span>`).join('')}</div>
       <div class="sub-h">Eigene Tags</div>${suggestHTML('blut')}${chipGroup('blut', d.btags||[])}`],
-    ['koerper','Körper','◎','var(--soft)', `<div class="sevrow" style="border-top:0"><span>Schmerz insgesamt</span>${scaleHTML('pain', d.pain, 'keiner','extrem')}</div>${suggestHTML('koerper')}${chipGroup('koerper', symOf('koerper'), {sev:1})}<div id="sev-koerper"></div>`],
+    ['koerper','Körper','◎','var(--soft)', `<div class="sevrow" style="border-top:0"><span>Schmerz insgesamt</span>${scaleHTML('pain', d.pain, 'keiner','extrem')}</div>${suggestHTML('koerper')}${chipGroup('koerper', symOf('koerper'), {sev:1})}`],
     ['pos','Stimmung','☺','var(--lut)', `<div class="sevrow" style="border-top:0"><span>Stimmung insgesamt</span>${scaleHTML('mood', d.mood, 'sehr schlecht','sehr gut')}</div>
-      <div class="sub-h">Positiv</div>${suggestHTML('pos')}${chipGroup('pos', symOf('pos'), {sev:1})}<div id="sev-pos"></div>
-      <div class="sub-h">Belastend</div>${suggestHTML('neg')}${chipGroup('neg', symOf('neg'), {sev:1})}<div id="sev-neg"></div>`],
+      <div class="sub-h">Positiv</div>${suggestHTML('pos')}${chipGroup('pos', symOf('pos'), {sev:1})}
+      <div class="sub-h">Belastend</div>${suggestHTML('neg')}${chipGroup('neg', symOf('neg'), {sev:1})}`],
     ['energie','Energie & Konzentration','⚡︎','var(--fol)', `<div class="sevrow" style="border-top:0"><span>Energie</span>${scaleHTML('energy', d.energy, 'sehr niedrig','sehr hoch')}</div><div class="sevrow"><span>Konzentration</span>${scaleHTML('conc', d.conc, 'sehr schwer','sehr leicht')}</div>`],
     ['hunger','Hunger & Essen','◒','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Hunger allgemein</span>${scaleHTML('hlvl', H.lvl, 'kaum','extrem')}</div>
       <div class="sub-h">Heißhunger auf</div>${suggestHTML('crav')}${chipGroup('crav', H.crav||[])}
@@ -703,7 +703,7 @@ function renderEntry(){
       <div class="sevrow"><span>Sättigung nach dem Essen</span>${scaleHTML('sat', H.sat, 'kaum satt','sehr satt')}</div>`],
     ['libido','Libido','♡','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Lust</span>${scaleHTML('libido', d.libido, 'keine','sehr stark')}</div>
       <div class="sub-h">Heute</div>${suggestHTML('intim')}${chipGroup('intim', d.intim||[])}`],
-    ['haut','Haut','◌','var(--win)', `${suggestHTML('haut')}${chipGroup('haut', symOf('haut'), {sev:1})}<div id="sev-haut"></div>`],
+    ['haut','Haut','◌','var(--win)', `${suggestHTML('haut')}${chipGroup('haut', symOf('haut'), {sev:1})}`],
     ['schlaf','Schlaf','☾','var(--lut)', `<div class="field" style="border-top:0"><span>Schlafdauer (h)</span><input type="number" id="f-sleeph" inputmode="decimal" step="0.5" min="0" max="16" value="${SL.h??''}"></div><div class="sevrow"><span>Qualität</span>${scaleHTML('sleepq', SL.q, 'sehr schlecht','sehr gut')}</div>`],
     ['stress','Stress','≋','var(--mens-soft)', `<div class="sevrow" style="border-top:0"><span>Stress</span>${scaleHTML('stress', ST.lvl, 'keiner','extrem')}</div>${suggestHTML('stress')}${chipGroup('stress', ST.src||[])}`],
     ['sport','Sport','↗','var(--win)', `${suggestHTML('sport')}${chipGroup('sport', SP.t||[])}<div class="field"><span>Dauer (Min.)</span><input type="number" id="f-spmin" inputmode="numeric" min="0" value="${SP.min??''}"></div><div class="sevrow"><span>Gefühlte Leistung</span>${scaleHTML('perf', SP.perf, 'sehr schwer','sehr stark')}</div>`],
@@ -724,10 +724,7 @@ function collectEntry(keepDraft){
   d.bleed = (chipsOn('bleed')[0]) || 'Keine';
   d.btags = chipsOn('blut');
   d.sym = {};
-  for (const sec of SEV_SECTIONS){
-    const box = document.getElementById('sev-'+sec);
-    box.querySelectorAll('.sevrow').forEach(r => { d.sym[sec+'|'+r.dataset.k] = readScale(r,'sev') || 3; });
-  }
+  for (const sec of SEV_SECTIONS) for (const k of chipsOn(sec)) d.sym[sec+'|'+k] = 1;
   const sc = n => readScale(root, n);
   if (sc('pain')) d.pain = sc('pain'); if (sc('mood')) d.mood = sc('mood'); if (sc('energy')) d.energy = sc('energy');
   if (sc('conc')) d.conc = sc('conc'); if (sc('libido')) d.libido = sc('libido');
@@ -775,9 +772,9 @@ function buildVars(){
   const V = {};
   for (const k of allSymKeys()){
     const [sec,it] = k.split('|');
-    V[k] = { label: it, group: SECTION_NAME[sec], good: sec==='pos', get: d => d.full ? (d.sym&&d.sym[k]) || 1 : null };
+    V[k] = { label: it, group: SECTION_NAME[sec], good: sec==='pos', get: d => d.full ? ((d.sym&&d.sym[k]) ? 1 : 0) : null };
   }
-  V.negComp = { label:'Belastende Stimmung (Ø)', group:'Stimmung', good:false, get: d => { if (!d.full) return null; const ks = S.settings.presets.neg.map(x=>'neg|'+x); return mean(ks.map(x=>(d.sym&&d.sym[x])||1)); } };
+  V.negComp = { label:'Belastende Stimmung (Anzahl)', group:'Stimmung', good:false, get: d => d.full ? Object.keys(d.sym||{}).filter(x=>x.startsWith('neg|')).length : null };
   V.mood = { label:'Stimmung insgesamt', group:'Stimmung', good:true, get: d => d.mood || null };
   V.pain = { label:'Schmerz insgesamt', group:'Körper', good:false, get: d => d.pain || null };
   V.energy = { label:'Energie', group:'Energie', good:true, get: d => d.energy || null };
@@ -987,8 +984,8 @@ function moodCard(V, cycles){
   const postMean = mean(post);
   const recent = []; const t = TODAY();
   for (let i=0;i<28;i++){ const d = S.days[iso(add(t,-i))]; if (d && d.full) recent.push(v.get(d)); }
-  const persistent = recent.length >= 14 && mean(recent) >= 3.5;
-  if (r.res === 'up' && postMean <= 2) { cls='warn'; txt = `Belastende Stimmung steigt bei dir in ${r.up} von ${r.ev} Zyklen vor der Periode deutlich an und klingt danach ab. Dieses Muster ähnelt dem, was bei PMS/PMDS beschrieben wird. Wenn es dich belastet, lohnt sich ein Gespräch mit deiner Frauenärztin – deine Aufzeichnungen sind dafür genau die richtige Grundlage (Bericht unter „Mehr“).`; }
+  const persistent = recent.length >= 14 && mean(recent) >= 2;
+  if (r.res === 'up' && postMean <= 0.5) { cls='warn'; txt = `Belastende Stimmung steigt bei dir in ${r.up} von ${r.ev} Zyklen vor der Periode deutlich an und klingt danach ab. Dieses Muster ähnelt dem, was bei PMS/PMDS beschrieben wird. Wenn es dich belastet, lohnt sich ein Gespräch mit deiner Frauenärztin – deine Aufzeichnungen sind dafür genau die richtige Grundlage (Bericht unter „Mehr“).`; }
   else if (r.res === 'up') { cls='warn'; txt = `Belastende Stimmung ist bei dir über den ganzen Zyklus spürbar und verstärkt sich vor der Periode (${r.up} von ${r.ev} Zyklen). Dieses Muster wird als prämenstruelle Verstärkung (PME) beschrieben. Eine ärztliche oder psychotherapeutische Abklärung kann hier sinnvoll sein.`; }
   else if (persistent) { cls='warn'; txt = `Deine belastende Stimmung war in den letzten vier Wochen an vielen Tagen erhöht – unabhängig von der Zyklusphase. Das hat dann eher nichts mit dem Zyklus zu tun. Sprich gern mit deiner Hausärztin oder einer Psychotherapeutin darüber. Wenn es dir akut schlecht geht: TelefonSeelsorge 0800 111 0 111 (kostenlos, rund um die Uhr).`; }
   else if (r.res === 'open') return '';
@@ -1276,7 +1273,7 @@ function reportSheet(){
     if (any) rows += `<tr><td>${esc(v.label)}</td>${cells}</tr>`;
   }
   const meds = [...new Set(cycles.flatMap(c=>c.days.flatMap(x=>(x.d&&x.d.meds)||[])))];
-  const rep = `<h2>Zyklusbericht (Takt)</h2><p>Erstellt am ${TODAY().toLocaleDateString('de-DE')}. Tägliche Selbstbewertung auf einer Skala von 1 (gar nicht) bis 6 (extrem) nach DRSP-Vorbild; bei Energie, Stimmung, Konzentration, Schlafqualität, Libido: 1 = sehr niedrig/schlecht, 6 = sehr hoch/gut. Ja/Nein-Merkmale als Anteil (0–1).</p>
+  const rep = `<h2>Zyklusbericht (Takt)</h2><p>Erstellt am ${TODAY().toLocaleDateString('de-DE')}. Tägliche Selbstbeobachtung. Symptome und Tags als Anteil der Tage, an denen sie auftraten (0–1). Skalen 1–6 (Energie, Stimmung, Schmerz, Konzentration, Schlafqualität, Libido, Stress, Hunger): 1 = sehr niedrig/gar nicht, 6 = sehr hoch/extrem.</p>
     <table><tr><th>Zyklus</th><th>Beginn</th><th>Länge</th><th>Blutungstage</th><th>Tage mit Gerinnseln</th><th>Zwischenblutung (Tage)</th></tr>${cycles.map((c,i)=>`<tr><td>${i+1}</td><td>${c.start.toLocaleDateString('de-DE')}</td><td>${c.len} Tage</td><td>${mensLenFrom(c.start)||'–'}</td><td>${c.days.filter(x=>x.d&&(x.d.btags||[]).includes('Gerinnsel')).length}</td><td>${c.days.filter(x=>x.d&&x.cd>(mensLenFrom(c.start)||5)&&(x.d.bleed==='Schmierblutung'||isBleed(x.d.bleed))).length}</td></tr>`).join('')}</table>
     <p><b>Mittelwerte:</b> prämenstruell (7 Tage vor Periodenbeginn) vs. postmenstruell (Zyklustag 4–10)</p>
     <table><tr><th>Merkmal</th>${cycles.map((c,i)=>`<th>Z${i+1} prä</th><th>Z${i+1} post</th>`).join('')}</tr>${rows}</table>
